@@ -17,6 +17,7 @@ import android.widget.TextView;
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
     private static final String TAG = MovieAdapter.class.getSimpleName();
     private int mNumberOfItems;
+    private static final String MOVIE_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w185";
 
     public MovieAdapter(int numListItems) {
         mNumberOfItems = numListItems;
@@ -53,6 +54,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             super(itemView);
 
             listItemPosterView = (ImageView) itemView.findViewById(R.id.movie_image);
+            //listItemPosterView.setImageDrawable();
             listItemNumberView = (TextView) itemView.findViewById(R.id.movie_text);
         }
         void bind(int listIndex) {
