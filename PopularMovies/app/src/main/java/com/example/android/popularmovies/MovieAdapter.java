@@ -10,17 +10,22 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.android.popularmovies.data.MovieData;
+import com.example.android.popularmovies.utilities.NetworkUtils;
+import com.squareup.picasso.Picasso;
+
+import java.net.URL;
+
 /**
  * Created by megan.wotring on 2/1/18.
  */
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
     private static final String TAG = MovieAdapter.class.getSimpleName();
-    private int mNumberOfItems;
-    private static final String MOVIE_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w185";
+    private MovieData[] mMoviesData;
 
-    public MovieAdapter(int numListItems) {
-        mNumberOfItems = numListItems;
+    public MovieAdapter() {
+
     }
 
     @Override
@@ -37,13 +42,20 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
-        Log.d(TAG, "#" + position);
-        holder.bind(position);
+        MovieData movie = mMoviesData[position];
+        Log.d(TAG, "Poster@@@@@@: " + movie.getPoster_path());
+
+        URL posterUrl = NetworkUtils.buildPosterUrl(movie.getPoster_path());
+
+        Context context = holder.listItemPosterView.getContext();
+        Picasso.with(context).load(posterUrl.toString()).into(holder.listItemPosterView);
+        //holder.bind(position);
     }
 
     @Override
     public int getItemCount() {
-        return mNumberOfItems;
+        if (null == mMoviesData) return 0;
+        return mMoviesData.length;
     }
 
     public class MovieViewHolder extends RecyclerView.ViewHolder {
@@ -54,12 +66,12 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             super(itemView);
 
             listItemPosterView = (ImageView) itemView.findViewById(R.id.movie_image);
-            //listItemPosterView.setImageDrawable();
-            listItemNumberView = (TextView) itemView.findViewById(R.id.movie_text);
-        }
-        void bind(int listIndex) {
-            listItemNumberView.setText(String.valueOf(listIndex));
         }
 
+    }
+
+    public void setMovieData(MovieData[] moviesData) {
+        mMoviesData = moviesData;
+        notifyDataSetChanged();
     }
 }
