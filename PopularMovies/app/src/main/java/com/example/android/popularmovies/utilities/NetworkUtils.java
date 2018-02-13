@@ -22,6 +22,7 @@ public final class NetworkUtils {
 
     private static final String MOVIES_API_BASE_URL = "https://api.themoviedb.org/3/discover/movie";
     private static final String MOVIE_API_BASE_URL = "https://api.themoviedb.org/3/movie";
+    private static final String MOVIE_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w185";
 
     private static final String KEY_PARAM = "api_key";
     private static final String SORT_PARAM = "sort_by";
@@ -44,6 +45,20 @@ public final class NetworkUtils {
             e.printStackTrace();
         }
         Log.v(TAG, "Built URI " + url);
+        return url;
+    }
+
+    public static URL buildPosterUrl(String posterPath){
+        Uri builtUri = Uri.parse(MOVIE_IMAGE_BASE_URL).buildUpon()
+                .appendEncodedPath(posterPath).build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        Log.v(TAG, "Built Poster URI !!!!! " + url);
         return url;
     }
 

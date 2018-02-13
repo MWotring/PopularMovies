@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.android.popularmovies.data.MovieData;
 import com.example.android.popularmovies.utilities.MovieDBJsonUtils;
 import com.example.android.popularmovies.utilities.NetworkUtils;
 
@@ -31,9 +32,10 @@ public class MainActivity extends AppCompatActivity {
 
         mMoviesList = (RecyclerView) findViewById(R.id.recyclerview_movies);
         int numberOfColumns = 3;
+        mMoviesList.setHasFixedSize(true);
         mMoviesList.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
 
-        mMovieAdapter = new MovieAdapter(NUM_LIST_ITEMS);
+        mMovieAdapter = new MovieAdapter();
         mMoviesList.setAdapter(mMovieAdapter);
         loadMovieData("popularity.desc");
 
@@ -55,10 +57,10 @@ public class MainActivity extends AppCompatActivity {
         mError.setVisibility(View.INVISIBLE);
     }
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, String[]> {
+    public class FetchMoviesTask extends AsyncTask<String, Void, MovieData[]> {
 
         @Override
-        protected String[] doInBackground(String... params) {
+        protected MovieData[] doInBackground(String... params) {
             /* if no preference default popular */
             String orderPref;
             if(params.length == 0) {
@@ -71,8 +73,8 @@ public class MainActivity extends AppCompatActivity {
             try {
                 String jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
                 Log.v(TAG, "Got response " + jsonMoviesResponse);
-                String[] simpleJsonMovieData = MovieDBJsonUtils.getPosterUrlsFromJson(MainActivity.this, jsonMoviesResponse);
-                return simpleJsonMovieData;
+                MovieData[] MovieDataObjects = MovieDBJsonUtils.getMovieDataFromJson(MainActivity.this, jsonMoviesResponse);
+                return MovieDataObjects;
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -81,10 +83,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(String[] movieData) {
+        protected void onPostExecute(MovieData[] movieData) {
             if (movieData != null){
                 showMovieGrid();
-                /* need to set data on the adapter yo */
+                Log.v(TAG, "onPostExecute");
+                mMovieAdapter.setMovieData(movieData);
             } else {
                 showErrorMsg();
             }
