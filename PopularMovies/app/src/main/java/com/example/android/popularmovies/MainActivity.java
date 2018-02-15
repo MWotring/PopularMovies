@@ -1,11 +1,16 @@
 package com.example.android.popularmovies;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -15,10 +20,9 @@ import com.example.android.popularmovies.utilities.NetworkUtils;
 
 import java.net.URL;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final int NUM_LIST_ITEMS = 20;
     private RecyclerView mMoviesList;
     private MovieAdapter mMovieAdapter;
     private TextView mError;
@@ -35,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
         mMoviesList.setHasFixedSize(true);
         mMoviesList.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
 
-        mMovieAdapter = new MovieAdapter();
+        mMovieAdapter = new MovieAdapter(this);
         mMoviesList.setAdapter(mMovieAdapter);
         loadMovieData("popularity.desc");
 
@@ -57,14 +61,28 @@ public class MainActivity extends AppCompatActivity {
         mError.setVisibility(View.INVISIBLE);
     }
 
+    @Override
+    public void onClick(MovieData movie) {
+        Context context = this;
+        Class destinationClass = DetailActivity.class;
+        Intent intentToStartDetailActivity = new Intent(context, destinationClass);
+        intentToStartDetailActivity
+                .putExtra("title", movie.getTitle())
+                .putExtra("posterPath", movie.getPosterPath())
+                .putExtra("overview", movie.getOverview())
+                .putExtra("rating", movie.getUserRating())
+                .putExtra("releaseDate", movie.getReleaseDate());
+        startActivity(intentToStartDetailActivity);
+    }
+
     public class FetchMoviesTask extends AsyncTask<String, Void, MovieData[]> {
 
         @Override
         protected MovieData[] doInBackground(String... params) {
-            /* if no preference default popular */
+            /* if no preference default sort by popular */
             String orderPref;
             if(params.length == 0) {
-                orderPref = "popularity.desc"; /* alt vote_average.desc */
+                orderPref = "popularity.desc";
             } else {
                 orderPref = params[0];
             }
@@ -72,7 +90,6 @@ public class MainActivity extends AppCompatActivity {
             URL movieRequestUrl = NetworkUtils.buildUrl(orderPref);
             try {
                 String jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
-                Log.v(TAG, "Got response " + jsonMoviesResponse);
                 MovieData[] MovieDataObjects = MovieDBJsonUtils.getMovieDataFromJson(MainActivity.this, jsonMoviesResponse);
                 return MovieDataObjects;
 
@@ -86,12 +103,34 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(MovieData[] movieData) {
             if (movieData != null){
                 showMovieGrid();
-                Log.v(TAG, "onPostExecute");
                 mMovieAdapter.setMovieData(movieData);
             } else {
                 showErrorMsg();
             }
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.movies, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if(id == R.id.movie_rating){
+            loadMovieData("vote_average.desc");
+            return true;
+        }
+        else if (id == R.id.movie_popular) {
+            loadMovieData("popularity.desc");
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+
     }
 }
 
