@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">PopularMovies</string>
     <string name="error_msg">Unable to connect to network.</string>
+    <string name="order_by_pop">Most Popular</string>
+    <string name="order_by_rate">Highest Rated</string>
+    <string name="title_activity_detail">DetailActivity</string>
 </resources>

@@ -5,18 +5,20 @@ package com.example.android.popularmovies.data;
  */
 
 public class MovieData {
-    String id;
-    String title;
-    String poster_path;
-    String overview;
-    String release_date;
+    private String user_rating;
+    private String id;
+    private String title;
+    private String poster_path;
+    private String overview;
+    private String release_date;
 
-    public MovieData(String id, String title, String poster_path, String overview, String release_date) {
+    public MovieData(String id, String title, String posterPath, String overview, String releaseDate, String userRating) {
         this.id = id;
         this.title = title;
-        this.poster_path = poster_path;
+        this.poster_path = posterPath;
         this.overview = overview;
-        this.release_date = release_date;
+        this.release_date = releaseDate;
+        this.user_rating = userRating;
     }
 
     public String getId() {
@@ -35,11 +37,11 @@ public class MovieData {
         this.title = title;
     }
 
-    public String getPoster_path() {
+    public String getPosterPath() {
         return poster_path;
     }
 
-    public void setPoster_path(String poster_path) {
+    public void setPosterPath(String poster_path) {
         this.poster_path = poster_path;
     }
 
@@ -51,11 +53,19 @@ public class MovieData {
         this.overview = overview;
     }
 
-    public String getRelease_date() {
+    public String getReleaseDate() {
         return release_date;
     }
 
-    public void setRelease_date(String release_date) {
+    public void setReleaseDate(String release_date) {
         this.release_date = release_date;
+    }
+
+    public String getUserRating() {
+        return user_rating;
+    }
+
+    public void setUserRating(String user_rating) {
+        this.user_rating = user_rating;
     }
 }

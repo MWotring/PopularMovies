@@ -1,14 +1,12 @@
 package com.example.android.popularmovies;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.example.android.popularmovies.data.MovieData;
 import com.example.android.popularmovies.utilities.NetworkUtils;
@@ -23,9 +21,14 @@ import java.net.URL;
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
     private static final String TAG = MovieAdapter.class.getSimpleName();
     private MovieData[] mMoviesData;
+    private final MovieAdapterOnClickHandler mClickHandler;
 
-    public MovieAdapter() {
+    public interface MovieAdapterOnClickHandler {
+        void onClick(MovieData movie);
+    }
 
+    public MovieAdapter(MovieAdapterOnClickHandler clickHandler) {
+        mClickHandler = clickHandler;
     }
 
     @Override
@@ -43,13 +46,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
         MovieData movie = mMoviesData[position];
-        Log.d(TAG, "Poster@@@@@@: " + movie.getPoster_path());
 
-        URL posterUrl = NetworkUtils.buildPosterUrl(movie.getPoster_path());
+        URL posterUrl = NetworkUtils.buildPosterUrl(movie.getPosterPath());
 
         Context context = holder.listItemPosterView.getContext();
-        Picasso.with(context).load(posterUrl.toString()).into(holder.listItemPosterView);
-        //holder.bind(position);
+        Picasso.with(context)
+                .load(posterUrl.toString())
+                .into(holder.listItemPosterView);
     }
 
     @Override
@@ -58,14 +61,21 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         return mMoviesData.length;
     }
 
-    public class MovieViewHolder extends RecyclerView.ViewHolder {
+    public class MovieViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         ImageView listItemPosterView;
-        TextView listItemNumberView;
 
         public MovieViewHolder(View itemView){
             super(itemView);
 
             listItemPosterView = (ImageView) itemView.findViewById(R.id.movie_image);
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            int adapterPosition = getAdapterPosition();
+            MovieData movie = mMoviesData[adapterPosition];
+            mClickHandler.onClick(movie);
         }
 
     }

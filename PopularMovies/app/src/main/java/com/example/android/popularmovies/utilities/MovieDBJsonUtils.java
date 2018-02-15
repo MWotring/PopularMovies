@@ -24,8 +24,9 @@ public final class MovieDBJsonUtils {
         final String MDB_RESULTS = "results";
         final String MDB_POSTER_PATH = "poster_path";
         final String MDB_ID = "id";
-        final String MDB_TITLE = "title";
+        final String MDB_TITLE = "original_title";
         final String MDB_OVERVIEW = "overview";
+        final String MDB_VOTE_AVG = "vote_average";
         final String MDB_RELEASE_DATE = "release_date";
 
         /* from String to json object */
@@ -45,7 +46,9 @@ public final class MovieDBJsonUtils {
             String title;
             String overview;
             String releaseDate;
+            String userRating;
 
+            Log.d(TAG, "Json: " + movieArray.getString(i));
             /* get a single movie's data */
             JSONObject movieJson = movieArray.getJSONObject(i);
             posterPath = movieJson.getString(MDB_POSTER_PATH);
@@ -53,9 +56,9 @@ public final class MovieDBJsonUtils {
             title = movieJson.getString(MDB_TITLE);
             overview = movieJson.getString(MDB_OVERVIEW);
             releaseDate = movieJson.getString(MDB_RELEASE_DATE);
+            userRating = movieJson.getString(MDB_VOTE_AVG);
 
-            Log.d(TAG, "getSimpleWeatherStringsFromJson: " + posterPath);
-            MovieData movie = new MovieData(id, title, posterPath, overview, releaseDate);
+            MovieData movie = new MovieData(id, title, posterPath, overview, releaseDate, userRating);
             movieDataArray[i] = movie;
         }
         return movieDataArray;
