@@ -29,7 +29,7 @@ public final class NetworkUtils {
     /**
      * Builds the URL used to talk to the movie api using a sort of popular or highest rated.
      *
-     * @param sortOrder The order that will be queried for, can be popularity.desc or vote_average.desc
+     * @param sortOrder The order that will be queried for, can be popular or top_rated
      * @return The URL to use to query the movie server.
      */
     public static URL buildUrl(String sortOrder) {

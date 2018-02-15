@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.android.popularmovies.data.MovieData;
 import com.example.android.popularmovies.utilities.NetworkUtils;
 import com.squareup.picasso.Picasso;
 
@@ -38,23 +39,24 @@ public class DetailActivity extends AppCompatActivity {
         mReleaseDateTextView = findViewById(R.id.movie_released);
 
         Intent intentThatStartedDetails = getIntent();
-        Bundle extras = intentThatStartedDetails.getExtras();
-        if (extras != null) {
-                mTitle = extras.getString("title");
+        MovieData movie = intentThatStartedDetails.getParcelableExtra("MovieData");
+
+        if (movie != null) {
+                mTitle = movie.getTitle();
                 mTitleTextView.setText(mTitle);
 
-                mPosterPath = extras.getString("posterPath");
+                mPosterPath = movie.getPosterPath();
 
-                mSynopsis = extras.getString("overview");
-                mSynopsisTextView.setText("Plot Synopsis: " + mSynopsis);
-
-
-                mRating = extras.getString("rating");
-                mUserRatingTextView.setText("Average film rating: " + mRating);
+                mSynopsis = movie.getOverview();
+                mSynopsisTextView.setText("Synopsis: " + mSynopsis);
 
 
-                mReleaseDate = extras.getString("releaseDate");
-                mReleaseDateTextView.setText("Film Release date: " + mReleaseDate);
+                mRating = movie.getUserRating();
+                mUserRatingTextView.setText("Average viewer rating: " + mRating);
+
+
+                mReleaseDate = movie.getReleaseDate();
+                mReleaseDateTextView.setText("Film release date: " + mReleaseDate);
 
         }
         URL posterUrl = NetworkUtils.buildPosterUrl(mPosterPath);
