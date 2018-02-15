@@ -82,7 +82,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             /* if no preference default sort by popular */
             String orderPref;
             if(params.length == 0) {
-                //orderPref = "popularity.desc";
                 orderPref = "popular";
             } else {
                 orderPref = params[0];
@@ -124,7 +123,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
         if(id == R.id.movie_rating){
             loadMovieData("top_rated");
-            //loadMovieData("vote_average.desc");
             return true;
         }
         else if (id == R.id.movie_popular) {

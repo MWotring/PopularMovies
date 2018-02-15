@@ -58,7 +58,6 @@ public final class MovieDBJsonUtils {
             releaseDate = movieJson.getString(MDB_RELEASE_DATE);
             userRating = movieJson.getString(MDB_VOTE_AVG);
 
-            Log.d(TAG, "getMoviesFromJson: " + title);
             MovieData movie = new MovieData(id, title, posterPath, overview, releaseDate, userRating);
             movieDataArray[i] = movie;
         }
