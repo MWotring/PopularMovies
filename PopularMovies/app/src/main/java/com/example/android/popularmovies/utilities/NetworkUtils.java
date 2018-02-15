@@ -15,18 +15,16 @@ import java.util.Scanner;
  */
 
 public final class NetworkUtils {
+
     /* Remember to  take this out before pushing to github!!*/
-    private static final String MOVIE_API_KEY = "";
+    private static final String MOVIE_API_KEY = "79845cd4ba126ddfcdc01ef483e4f2a9";
 
     private static final String TAG = NetworkUtils.class.getSimpleName();
 
-    private static final String MOVIES_API_BASE_URL = "https://api.themoviedb.org/3/discover/movie";
-    /* This URL not yet in use, but future features will require it */
-    private static final String MOVIE_API_BASE_URL = "https://api.themoviedb.org/3/movie";
     private static final String MOVIE_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w342";
+    private static final String MOVIES_API_BASE_URL = "https://api.themoviedb.org/3/movie";
 
     private static final String KEY_PARAM = "api_key";
-    private static final String SORT_PARAM = "sort_by";
 
     /**
      * Builds the URL used to talk to the movie api using a sort of popular or highest rated.
@@ -36,7 +34,7 @@ public final class NetworkUtils {
      */
     public static URL buildUrl(String sortOrder) {
         Uri builtUri = Uri.parse(MOVIES_API_BASE_URL).buildUpon()
-                .appendQueryParameter(SORT_PARAM, sortOrder)
+                .appendEncodedPath(sortOrder)
                 .appendQueryParameter(KEY_PARAM, MOVIE_API_KEY)
                 .build();
         URL url = null;
