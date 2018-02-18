@@ -47,8 +47,15 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     private void loadMovieData(String orderBy) {
         showMovieGrid();
+        Context context = this;
+        boolean network = NetworkUtils.isNetworkConnectionPresent(context);
 
-        new FetchMoviesTask().execute(orderBy);
+        if(network == true) {
+            new FetchMoviesTask().execute(orderBy);
+        } else {
+            showErrorMsg();
+            Log.v(TAG, "Network check has failed.");
+        }
     }
 
     private void showErrorMsg() {
