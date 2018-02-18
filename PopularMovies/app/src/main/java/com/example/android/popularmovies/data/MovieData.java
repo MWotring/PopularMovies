@@ -8,28 +8,28 @@ import android.os.Parcelable;
  */
 
 public class MovieData implements Parcelable{
-    private String user_rating;
+    private String userRating;
     private String id;
     private String title;
-    private String poster_path;
+    private String posterPath;
     private String overview;
-    private String release_date;
+    private String releaseDate;
 
     public MovieData(String id, String title, String posterPath, String overview, String releaseDate, String userRating) {
         this.id = id;
         this.title = title;
-        this.poster_path = posterPath;
+        this.posterPath = posterPath;
         this.overview = overview;
-        this.release_date = releaseDate;
-        this.user_rating = userRating;
+        this.releaseDate = releaseDate;
+        this.userRating = userRating;
     }
 
     private MovieData(Parcel in) {
         title = in.readString();
-        poster_path = in.readString();
+        posterPath = in.readString();
         overview = in.readString();
-        user_rating = in.readString();
-        release_date = in.readString();
+        userRating = in.readString();
+        releaseDate = in.readString();
     }
 
     public String getId() {
@@ -49,11 +49,11 @@ public class MovieData implements Parcelable{
     }
 
     public String getPosterPath() {
-        return poster_path;
+        return posterPath;
     }
 
     public void setPosterPath(String poster_path) {
-        this.poster_path = poster_path;
+        this.posterPath = poster_path;
     }
 
     public String getOverview() {
@@ -65,19 +65,19 @@ public class MovieData implements Parcelable{
     }
 
     public String getReleaseDate() {
-        return release_date;
+        return releaseDate;
     }
 
     public void setReleaseDate(String release_date) {
-        this.release_date = release_date;
+        this.releaseDate = release_date;
     }
 
     public String getUserRating() {
-        return user_rating;
+        return userRating;
     }
 
     public void setUserRating(String user_rating) {
-        this.user_rating = user_rating;
+        this.userRating = user_rating;
     }
 
     @Override
@@ -88,10 +88,10 @@ public class MovieData implements Parcelable{
     @Override
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeString(title);
-        parcel.writeString(poster_path);
+        parcel.writeString(posterPath);
         parcel.writeString(overview);
-        parcel.writeString(user_rating);
-        parcel.writeString(release_date);
+        parcel.writeString(userRating);
+        parcel.writeString(releaseDate);
     }
 
     public static final Parcelable.Creator<MovieData> CREATOR = new Parcelable.Creator<MovieData>() {
