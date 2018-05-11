@@ -2,7 +2,9 @@ package com.example.android.popularmovies;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -19,13 +21,17 @@ import com.example.android.popularmovies.utilities.MovieDBJsonUtils;
 import com.example.android.popularmovies.utilities.NetworkUtils;
 
 import java.net.URL;
+import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler {
+public class MainActivity extends AppCompatActivity implements
+        MovieAdapter.MovieAdapterOnClickHandler,
+        LoaderManager.LoaderCallbacks<ArrayList<MovieData>> {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private RecyclerView mMoviesList;
     private MovieAdapter mMovieAdapter;
     private TextView mError;
+    private static final int MOVIE_LOADER_ID = 13;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +47,16 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
         mMovieAdapter = new MovieAdapter(this);
         mMoviesList.setAdapter(mMovieAdapter);
-        loadMovieData("popular");
+
+        int loaderId = MOVIE_LOADER_ID;
+
+        LoaderManager.LoaderCallbacks<ArrayList<MovieData>> callbacks = MainActivity.this;
+
+        Bundle bundleForLoader = null;
+
+        getSupportLoaderManager().initLoader(loaderId, bundleForLoader, callbacks);
+
+       // loadMovieData("popular");
 
     }
 
@@ -51,25 +66,25 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         boolean network = NetworkUtils.isNetworkConnectionPresent(context);
 
         if(network == true) {
-            new FetchMoviesTask().execute(orderBy);
+            //new FetchMoviesTask().execute(orderBy);
         } else {
             showErrorMsg();
             Log.v(TAG, "Network check has failed.");
         }
     }
 
-    private void showErrorMsg() {
-        mMoviesList.setVisibility(View.INVISIBLE);
-        mError.setVisibility(View.VISIBLE);
-    }
+        private void showErrorMsg() {
+            mMoviesList.setVisibility(View.INVISIBLE);
+            mError.setVisibility(View.VISIBLE);
+        }
 
-    private void showMovieGrid() {
-        mMoviesList.setVisibility(View.VISIBLE);
-        mError.setVisibility(View.INVISIBLE);
-    }
+        private void showMovieGrid() {
+            mMoviesList.setVisibility(View.VISIBLE);
+            mError.setVisibility(View.INVISIBLE);
+        }
 
-    @Override
-    public void onClick(MovieData movie) {
+        @Override
+        public void onClick(MovieData movie) {
         Context context = this;
         Class destinationClass = DetailActivity.class;
         Intent intentToStartDetailActivity = new Intent(context, destinationClass);
@@ -78,40 +93,32 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         startActivity(intentToStartDetailActivity);
     }
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, MovieData[]> {
-
-        @Override
-        protected MovieData[] doInBackground(String... params) {
-            /* if no preference default sort by popular */
-            String orderPref;
-            if(params.length == 0) {
-                orderPref = "popular";
-            } else {
-                orderPref = params[0];
-            }
-
-            URL movieRequestUrl = NetworkUtils.buildUrl(orderPref);
-            try {
-                String jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
-                MovieData[] MovieDataObjects = MovieDBJsonUtils.getMovieDataFromJson(MainActivity.this, jsonMoviesResponse);
-                return MovieDataObjects;
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(MovieData[] movieData) {
-            if (movieData != null){
-                showMovieGrid();
-                mMovieAdapter.setMovieData(movieData);
-            } else {
-                showErrorMsg();
-            }
-        }
+    @Override
+    public Loader<ArrayList<MovieData>> onCreateLoader(int id, Bundle loaderArgs) {
+        return new MovieAsyncTaskLoader(getApplicationContext());
     }
+
+
+
+    @Override
+    public void onLoadFinished(Loader<ArrayList<MovieData>> loader, ArrayList<MovieData> movieData) {
+        //another possible loading indicator spot
+        mMovieAdapter.setMovieData(movieData);
+        if (movieData == null) {
+            showErrorMsg();
+        } else {
+            //show movie data view
+        }
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<ArrayList<MovieData>> loader) {
+        invalidateData();
+    }
+
+    private void invalidateData() {mMovieAdapter.setMovieData(null);}
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -133,6 +140,52 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             return true;
         }
         return super.onOptionsItemSelected(item);
+
+    }
+
+    private static class MovieAsyncTaskLoader extends AsyncTaskLoader<ArrayList<MovieData>>  {
+
+        ArrayList<MovieData> mMovieData;
+
+        public MovieAsyncTaskLoader(Context context) {
+            super(context);
+        }
+
+        @Override
+            protected void onStartLoading() {
+                if (mMovieData != null) {
+                    deliverResult(mMovieData);
+                } else {
+                    //adding a loading indicator is a possibiity here
+                    forceLoad();
+                }
+            }
+
+            @Override
+            public ArrayList<MovieData> loadInBackground() {
+                String orderPref = "popular";
+
+                //preferences call needs to be made here to get movies of correct category
+                //after preferences are implemented
+                URL movieRequestUrl = NetworkUtils.buildUrl(orderPref);
+
+                try {
+                    String jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
+                    ArrayList<MovieData> MovieDataStrings = MovieDBJsonUtils.getMovieDataFromJson(getContext(), jsonMoviesResponse);
+                    return MovieDataStrings;
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
+
+            }
+
+            public void deliverResult(ArrayList<MovieData> data) {
+                mMovieData = data;
+                super.deliverResult(data);
+            }
+
 
     }
 }

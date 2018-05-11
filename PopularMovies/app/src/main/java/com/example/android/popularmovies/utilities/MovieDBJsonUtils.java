@@ -9,6 +9,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 /**
  * Created by megan.wotring on 2/11/18.
  */
@@ -17,7 +19,7 @@ public final class MovieDBJsonUtils {
 
     private static final String TAG = MovieDBJsonUtils.class.getSimpleName();
 
-    public static MovieData[] getMovieDataFromJson(Context context, String movieJsonString)
+    public static ArrayList<MovieData> getMovieDataFromJson(Context context, String movieJsonString)
             throws JSONException {
 
         /* All results are children of the "results" object */
@@ -36,8 +38,8 @@ public final class MovieDBJsonUtils {
         JSONArray movieArray = moviesJsons.getJSONArray(MDB_RESULTS);
 
         /* An array of movie objects so we can access them as needed */
-        MovieData[] movieDataArray = new MovieData[movieArray.length()];
-
+       // MovieData[] movieDataArray = new MovieData[movieArray.length()];
+        ArrayList<MovieData> movieDataArrayList = new ArrayList<>();
 
         for (int i = 0; i < movieArray.length(); i++){
             /* items to be pulled from json */
@@ -59,8 +61,8 @@ public final class MovieDBJsonUtils {
             userRating = movieJson.getString(MDB_VOTE_AVG);
 
             MovieData movie = new MovieData(id, title, posterPath, overview, releaseDate, userRating);
-            movieDataArray[i] = movie;
+            movieDataArrayList.add(movie);
         }
-        return movieDataArray;
+        return movieDataArrayList;
     }
 }
