@@ -3,6 +3,11 @@
     <string name="error_msg">Unable to connect to network.</string>
     <string name="order_by_pop">Most Popular</string>
     <string name="order_by_rate">Highest Rated</string>
+    <string name="order_by_favorite">Your Favorites</string>
     <string name="title_activity_detail">DetailActivity</string>
     <string name="movie_poster">movie_poster</string>
+    <string name="sort_by">Movie Sort Order</string>
+    <string name="order_by_rate_value">top_rated</string>
+    <string name="order_by_pop_value">popular</string>
+    <string name="order_by_favorite_value">favorite</string>
 </resources>
