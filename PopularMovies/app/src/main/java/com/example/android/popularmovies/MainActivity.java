@@ -2,6 +2,8 @@ package com.example.android.popularmovies;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -17,6 +19,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.example.android.popularmovies.data.MovieData;
+import com.example.android.popularmovies.data.MoviePreferences;
 import com.example.android.popularmovies.utilities.MovieDBJsonUtils;
 import com.example.android.popularmovies.utilities.NetworkUtils;
 
@@ -25,13 +28,15 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements
         MovieAdapter.MovieAdapterOnClickHandler,
-        LoaderManager.LoaderCallbacks<ArrayList<MovieData>> {
+        LoaderManager.LoaderCallbacks<ArrayList<MovieData>>,
+        SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private RecyclerView mMoviesList;
     private MovieAdapter mMovieAdapter;
     private TextView mError;
     private static final int MOVIE_LOADER_ID = 13;
+    private static boolean PREFERENCES_HAVE_BEEN_UPDATED = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +61,8 @@ public class MainActivity extends AppCompatActivity implements
 
         getSupportLoaderManager().initLoader(loaderId, bundleForLoader, callbacks);
 
-       // loadMovieData("popular");
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .registerOnSharedPreferenceChangeListener(this);
 
     }
 
@@ -131,16 +137,36 @@ public class MainActivity extends AppCompatActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if(id == R.id.movie_rating){
-            loadMovieData("top_rated");
-            return true;
-        }
-        else if (id == R.id.movie_popular) {
-            loadMovieData("popular");
+        if (id == R.id.action_settings) {
+            Intent startSettingsActivity = new Intent(this, SettingsActivity.class);
+            startActivity(startSettingsActivity);
             return true;
         }
         return super.onOptionsItemSelected(item);
 
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        PREFERENCES_HAVE_BEEN_UPDATED = true;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (PREFERENCES_HAVE_BEEN_UPDATED) {
+            Log.d(TAG, "Preferences have been updated");
+            getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
+            PREFERENCES_HAVE_BEEN_UPDATED = false;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .unregisterOnSharedPreferenceChangeListener(this);
     }
 
     private static class MovieAsyncTaskLoader extends AsyncTaskLoader<ArrayList<MovieData>>  {
@@ -156,26 +182,29 @@ public class MainActivity extends AppCompatActivity implements
                 if (mMovieData != null) {
                     deliverResult(mMovieData);
                 } else {
-                    //adding a loading indicator is a possibiity here
+                    //adding a loading indicator is possible here
                     forceLoad();
                 }
             }
 
             @Override
             public ArrayList<MovieData> loadInBackground() {
-                String orderPref = "popular";
+                String orderPref = MoviePreferences.getPrefSortBy(getContext());
 
-                //preferences call needs to be made here to get movies of correct category
-                //after preferences are implemented
-                URL movieRequestUrl = NetworkUtils.buildUrl(orderPref);
+                if (orderPref != "favorite") {
+                    URL movieRequestUrl = NetworkUtils.buildUrl(orderPref);
 
-                try {
-                    String jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
-                    ArrayList<MovieData> MovieDataStrings = MovieDBJsonUtils.getMovieDataFromJson(getContext(), jsonMoviesResponse);
-                    return MovieDataStrings;
+                    try {
+                        String jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
+                        ArrayList<MovieData> MovieDataStrings = MovieDBJsonUtils.getMovieDataFromJson(getContext(), jsonMoviesResponse);
+                        return MovieDataStrings;
 
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                } else {
+                    //TODO gotta set up that favorite database
                     return null;
                 }
 
