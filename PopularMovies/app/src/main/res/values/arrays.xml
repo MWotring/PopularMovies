@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="sort_order_options">
+        <item>@string/order_by_pop</item>
+        <item>@string/order_by_rate</item>
+        <item>@string/order_by_favorite</item>
+    </string-array>
+    <string-array name="sort_order_values">
+        <item>@string/order_by_pop_value</item>
+        <item>@string/order_by_rate_value</item>
+        <item>@string/order_by_favorite_value</item>
+    </string-array>
+</resources>
+
+
+
