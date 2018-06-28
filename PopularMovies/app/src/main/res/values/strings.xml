@@ -10,4 +10,6 @@
     <string name="order_by_rate_value">top_rated</string>
     <string name="order_by_pop_value">popular</string>
     <string name="order_by_favorite_value">favorite</string>
+    <string name="not_favorite_value">false</string>
+    <string name="favorite_value">true</string>
 </resources>
