@@ -1,14 +1,19 @@
 package com.example.android.popularmovies;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -18,25 +23,44 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.example.android.popularmovies.data.MovieData;
+import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.data.MoviePreferences;
 import com.example.android.popularmovies.utilities.MovieDBJsonUtils;
 import com.example.android.popularmovies.utilities.NetworkUtils;
 
+import org.json.JSONException;
+
+import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.URL;
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements
         MovieAdapter.MovieAdapterOnClickHandler,
-        LoaderManager.LoaderCallbacks<ArrayList<MovieData>>,
+        LoaderManager.LoaderCallbacks<Cursor>,
         SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+
+    public static final String[] MAIN_MOVIE_PROJECTION = {
+            MovieContract.MovieEntry.COLUMN_MOVIE_API_ID,
+            MovieContract.MovieEntry.COLUMN_MOVIE_POSTER,
+            MovieContract.MovieEntry.COLUMN_MOVIE_SORT,
+    };
+
+    public static final int INDEX_MOVIE_API_ID = 0;
+    public static final int INDEX_MOVIE_POSTER = 1;
+    public static final int INDEX_MOVIE_SORT = 2;
+
+
     private RecyclerView mMoviesList;
     private MovieAdapter mMovieAdapter;
     private TextView mError;
-    private static final int MOVIE_LOADER_ID = 13;
+    private Cursor mMovieDataCursor;
+    private static final int ID_MOVIE_LOADER = 13;
     private static boolean PREFERENCES_HAVE_BEEN_UPDATED = false;
+    private int mPosition = RecyclerView.NO_POSITION;
+    private String mSelection;
+    private String[] mSelectionArgs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,32 +74,41 @@ public class MainActivity extends AppCompatActivity implements
         mMoviesList.setHasFixedSize(true);
         mMoviesList.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
 
-        mMovieAdapter = new MovieAdapter(this);
+        mMovieAdapter = new MovieAdapter(this, this);
         mMoviesList.setAdapter(mMovieAdapter);
 
-        int loaderId = MOVIE_LOADER_ID;
+        int loaderId = ID_MOVIE_LOADER;
 
-        LoaderManager.LoaderCallbacks<ArrayList<MovieData>> callbacks = MainActivity.this;
+        LoaderManager.LoaderCallbacks<Cursor> callbacks = MainActivity.this;
 
         Bundle bundleForLoader = null;
 
-        getSupportLoaderManager().initLoader(loaderId, bundleForLoader, callbacks);
+        getSupportLoaderManager().restartLoader(loaderId, bundleForLoader, callbacks);
 
         PreferenceManager.getDefaultSharedPreferences(this)
                 .registerOnSharedPreferenceChangeListener(this);
 
+        String prefSortBy = MoviePreferences.getPrefSortBy(this);
+        loadMovieData(prefSortBy);
     }
 
     private void loadMovieData(String orderBy) {
         showMovieGrid();
         Context context = this;
         boolean network = NetworkUtils.isNetworkConnectionPresent(context);
+        Log.d(TAG, "load movieData method, orderby " + orderBy);
 
-        if(network == true) {
-            //new FetchMoviesTask().execute(orderBy);
+        if (orderBy.equals(getString(R.string.order_by_favorite_value))) {
+            new MovieAsyncTaskLoader(this).loadInBackground();
+            Log.d(TAG, "loadMovieData for favorites");
+        }
+        else if(network) {
+            Log.d(TAG, "going to call api from loadMovieData");
+            new MovieQueryAsyncTask(context).execute(orderBy);
         } else {
-            showErrorMsg();
-            Log.v(TAG, "Network check has failed.");
+           // showErrorMsg();
+            new MovieAsyncTaskLoader(this).loadInBackground();
+            Log.v(TAG, "Network check has failed. Loading from DB");
         }
     }
 
@@ -90,40 +123,69 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         @Override
-        public void onClick(MovieData movie) {
+        public void onClick(String movieApiId) {
         Context context = this;
         Class destinationClass = DetailActivity.class;
         Intent intentToStartDetailActivity = new Intent(context, destinationClass);
         intentToStartDetailActivity
-                .putExtra("MovieData", movie);
+                .putExtra("MovieApiId", movieApiId);
         startActivity(intentToStartDetailActivity);
     }
 
     @Override
-    public Loader<ArrayList<MovieData>> onCreateLoader(int id, Bundle loaderArgs) {
-        return new MovieAsyncTaskLoader(getApplicationContext());
+    public Loader<Cursor> onCreateLoader(int id, Bundle loaderArgs) {
+        Log.d(TAG, "onCreateLoader called with id " + id);
+        switch (id) {
+            case ID_MOVIE_LOADER:
+                Uri movieQueryUri = MovieContract.MovieEntry.CONTENT_URI;
+                String prefSortBy = MoviePreferences.getPrefSortBy(this);
+                if (prefSortBy.equals("favorite")) {
+                    mSelection = MovieContract.MovieEntry.COLUMN_MOVIE_FAVORITE + "=?";
+                    mSelectionArgs = new String[]{"true"};
+                } else {
+                    mSelection = MovieContract.MovieEntry.COLUMN_MOVIE_SORT + "=?";
+                    mSelectionArgs = new String[]{prefSortBy};
+                }
+                return new CursorLoader(this,
+                        movieQueryUri,
+                        MAIN_MOVIE_PROJECTION,
+                        mSelection,
+                        mSelectionArgs,
+                        null
+                        );
+                default:
+                    throw new RuntimeException("Loader not implemented: " + id);
+        }
     }
 
 
 
     @Override
-    public void onLoadFinished(Loader<ArrayList<MovieData>> loader, ArrayList<MovieData> movieData) {
-        //another possible loading indicator spot
-        mMovieAdapter.setMovieData(movieData);
-        if (movieData == null) {
+    public void onLoadFinished(Loader<Cursor> loader, Cursor movieData) {
+        Log.d(TAG, "onLoadFinished called");
+        mMovieDataCursor = movieData;
+        mMovieAdapter.swapCursor(movieData);
+        if (mPosition == RecyclerView.NO_POSITION) mPosition = 0;
+        mMoviesList.smoothScrollToPosition(mPosition);
+        if (mMovieDataCursor == null) {
             showErrorMsg();
         } else {
-            //show movie data view
+            Log.d(TAG, "Cursor not null, calling loadMoveData");
+            String prefSortBy = MoviePreferences.getPrefSortBy(this);
+            loadMovieData(prefSortBy);
         }
 
     }
 
     @Override
-    public void onLoaderReset(Loader<ArrayList<MovieData>> loader) {
-        invalidateData();
+    public void onLoaderReset(Loader<Cursor> loader) {
+        if (mMovieAdapter != null) {
+            mMovieAdapter.swapCursor(null);
+            Log.d(TAG, "onLoaderReset valid adapter");
+        } else {
+            Log.d(TAG, "OnLoaderRest: adapter is null");
+        }
     }
-
-    private void invalidateData() {mMovieAdapter.setMovieData(null);}
 
 
     @Override
@@ -148,6 +210,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        getSupportLoaderManager().restartLoader(ID_MOVIE_LOADER, null, this);
         PREFERENCES_HAVE_BEEN_UPDATED = true;
     }
 
@@ -157,7 +220,7 @@ public class MainActivity extends AppCompatActivity implements
 
         if (PREFERENCES_HAVE_BEEN_UPDATED) {
             Log.d(TAG, "Preferences have been updated");
-            getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
+            getSupportLoaderManager().restartLoader(ID_MOVIE_LOADER, null, this);
             PREFERENCES_HAVE_BEEN_UPDATED = false;
         }
     }
@@ -169,53 +232,87 @@ public class MainActivity extends AppCompatActivity implements
                 .unregisterOnSharedPreferenceChangeListener(this);
     }
 
-    private static class MovieAsyncTaskLoader extends AsyncTaskLoader<ArrayList<MovieData>>  {
+    private static class MovieAsyncTaskLoader extends AsyncTaskLoader<Cursor>  {
 
-        ArrayList<MovieData> mMovieData;
+        Cursor mMovieData;
 
         public MovieAsyncTaskLoader(Context context) {
             super(context);
         }
 
         @Override
-            protected void onStartLoading() {
-                if (mMovieData != null) {
-                    deliverResult(mMovieData);
-                } else {
-                    //adding a loading indicator is possible here
-                    forceLoad();
-                }
+        protected void onStartLoading() {
+        Log.d(TAG, "AsyncTaskLoader onStartLoading");
+            if (mMovieData != null) {
+                deliverResult(mMovieData);
+            } else {
+                forceLoad();
             }
+        }
 
-            @Override
-            public ArrayList<MovieData> loadInBackground() {
-                String orderPref = MoviePreferences.getPrefSortBy(getContext());
+        @Override
+        public Cursor loadInBackground() {
+            ContentResolver resolver = getContext().getContentResolver();
+            Log.d(TAG, "loadInBack in AsyncTaskLoader " );
 
-                if (orderPref != "favorite") {
-                    URL movieRequestUrl = NetworkUtils.buildUrl(orderPref);
-
-                    try {
-                        String jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
-                        ArrayList<MovieData> MovieDataStrings = MovieDBJsonUtils.getMovieDataFromJson(getContext(), jsonMoviesResponse);
-                        return MovieDataStrings;
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                } else {
-                    //TODO gotta set up that favorite database
+                try {
+                    Cursor cursor = resolver.query(MovieContract.MovieEntry.CONTENT_URI,
+                            MAIN_MOVIE_PROJECTION, null, null, null,null);
+                    return cursor;
+                } catch (Exception e) {
+                    e.printStackTrace();
                     return null;
                 }
+        }
 
+        @Override
+        public void deliverResult(Cursor cursor) {
+            mMovieData = cursor;
+            super.deliverResult(cursor);
+        }
+
+    }
+
+
+    private static class MovieQueryAsyncTask extends AsyncTask<String, Void, String> {
+        private WeakReference<Context> mContextReference;
+
+        private MovieQueryAsyncTask(Context context) {
+            mContextReference = new WeakReference<>(context);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            String orderPref = params[0];
+            URL movieRequestUrl = NetworkUtils.buildUrl(orderPref);
+            String jsonMoviesResponse;
+
+            try {
+                jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
             }
+            return jsonMoviesResponse;
+        }
 
-            public void deliverResult(ArrayList<MovieData> data) {
-                mMovieData = data;
-                super.deliverResult(data);
+        @Override
+        protected void onPostExecute(String jsonMovieResponse) {
+            Context context = mContextReference.get();
+            if (jsonMovieResponse != null && !jsonMovieResponse.equals("")) {
+                try {
+                    int rowsAdded = MovieDBJsonUtils.getMovieDataFromJson(context, jsonMovieResponse);
+                    Log.d(TAG, "AsyncTask onPostExecute with new rows " + rowsAdded);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
-
-
+        }
     }
 }
 

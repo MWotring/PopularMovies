@@ -1,8 +1,9 @@
 package com.example.android.popularmovies;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,20 +24,22 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     private static final String TAG = MovieAdapter.class.getSimpleName();
     private ArrayList<MovieData> mMoviesData;
     private final MovieAdapterOnClickHandler mClickHandler;
+    private final Context mContext;
+    private Cursor mCursor;
 
     public interface MovieAdapterOnClickHandler {
-        void onClick(MovieData movieData);
+        void onClick(String movieData);
     }
 
-    public MovieAdapter(MovieAdapterOnClickHandler clickHandler) {
+    public MovieAdapter(@NonNull Context context, MovieAdapterOnClickHandler clickHandler) {
+        mContext = context;
         mClickHandler = clickHandler;
     }
 
     @Override
     public MovieViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Context context = parent.getContext();
         int layoutIdForGridItem = R.layout.movie_grid_item;
-        LayoutInflater inflater = LayoutInflater.from(context);
+        LayoutInflater inflater = LayoutInflater.from(mContext);
         boolean shouldAttachToParentImmediately = false;
 
         View view = inflater.inflate(layoutIdForGridItem, parent, shouldAttachToParentImmediately);
@@ -46,9 +49,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
-        MovieData movie = mMoviesData.get(position);
+        mCursor.moveToPosition(position);
+        String posterPath = mCursor.getString(MainActivity.INDEX_MOVIE_POSTER);
 
-        URL posterUrl = NetworkUtils.buildPosterUrl(movie.getPosterPath());
+        URL posterUrl = NetworkUtils.buildPosterUrl(posterPath);
 
         Context context = holder.listItemPosterView.getContext();
         Picasso.with(context)
@@ -58,8 +62,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     @Override
     public int getItemCount() {
-        if (null == mMoviesData) return 0;
-        return mMoviesData.size();
+        if (mCursor == null) return 0;
+        return mCursor.getCount();
+    }
+
+    void swapCursor(Cursor newCursor) {
+        mCursor = newCursor;
+        notifyDataSetChanged();
     }
 
     public class MovieViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -75,8 +84,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         @Override
         public void onClick(View v) {
             int adapterPosition = getAdapterPosition();
-            MovieData movie = mMoviesData.get(adapterPosition);
-            mClickHandler.onClick(movie);
+            mCursor.moveToPosition(adapterPosition);
+            String movieApiId = mCursor.getString(MainActivity.INDEX_MOVIE_API_ID);
+
+            mClickHandler.onClick(movieApiId);
         }
 
     }
