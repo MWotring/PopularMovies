@@ -46,12 +46,10 @@ public class MainActivity extends AppCompatActivity implements
     public static final String[] MAIN_MOVIE_PROJECTION = {
             MovieContract.MovieEntry.COLUMN_MOVIE_API_ID,
             MovieContract.MovieEntry.COLUMN_MOVIE_POSTER,
-            MovieContract.MovieEntry.COLUMN_MOVIE_SORT,
     };
 
     public static final int INDEX_MOVIE_API_ID = 0;
     public static final int INDEX_MOVIE_POSTER = 1;
-    public static final int INDEX_MOVIE_SORT = 2;
 
 
     private RecyclerView mMoviesList;
@@ -90,11 +88,10 @@ public class MainActivity extends AppCompatActivity implements
         PreferenceManager.getDefaultSharedPreferences(this)
                 .registerOnSharedPreferenceChangeListener(this);
 
-        //String prefSortBy = MoviePreferences.getPrefSortBy(this);
         MovieSyncUtils.initialize(this);
-        //loadMovieData(prefSortBy);
     }
 
+    //May not need this method any longer
     private void loadMovieData(String orderBy) {
         showMovieGrid();
         Context context = this;
@@ -172,11 +169,7 @@ public class MainActivity extends AppCompatActivity implements
         mMoviesList.smoothScrollToPosition(mPosition);
         if (mMovieDataCursor.getCount() != 0) {
             showMovieGrid();
-            //showErrorMsg();
         } else {
-            //Log.d(TAG, "Cursor not null, calling loadMoveData");
-            //String prefSortBy = MoviePreferences.getPrefSortBy(this);
-            //loadMovieData(prefSortBy);
             showErrorMsg();
         }
 
