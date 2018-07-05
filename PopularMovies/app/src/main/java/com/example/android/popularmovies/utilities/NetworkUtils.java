@@ -20,7 +20,7 @@ import java.util.Scanner;
 public final class NetworkUtils {
 
     /* Remember to  take this out before pushing to github!!*/
-    private static final String MOVIE_API_KEY = "79845cd4ba126ddfcdc01ef483e4f2a9";
+    private static final String MOVIE_API_KEY = "";
 
     private static final String TAG = NetworkUtils.class.getSimpleName();
 
