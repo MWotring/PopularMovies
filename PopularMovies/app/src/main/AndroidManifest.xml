@@ -29,6 +29,14 @@
             android:authorities="com.example.android.popularmovies"
             android:name="com.example.android.popularmovies.data.MovieProvider"
             android:exported="false"/>
+        <service android:name=".sync.MovieSyncIntentService"
+            android:exported="false"/>
+        <service android:name=".sync.MovieFirebaseJobService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

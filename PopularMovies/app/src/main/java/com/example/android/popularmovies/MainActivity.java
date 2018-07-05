@@ -1,6 +1,7 @@
 package com.example.android.popularmovies;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,6 +26,7 @@ import android.widget.TextView;
 
 import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.data.MoviePreferences;
+import com.example.android.popularmovies.sync.MovieSyncUtils;
 import com.example.android.popularmovies.utilities.MovieDBJsonUtils;
 import com.example.android.popularmovies.utilities.NetworkUtils;
 
@@ -44,12 +46,10 @@ public class MainActivity extends AppCompatActivity implements
     public static final String[] MAIN_MOVIE_PROJECTION = {
             MovieContract.MovieEntry.COLUMN_MOVIE_API_ID,
             MovieContract.MovieEntry.COLUMN_MOVIE_POSTER,
-            MovieContract.MovieEntry.COLUMN_MOVIE_SORT,
     };
 
     public static final int INDEX_MOVIE_API_ID = 0;
     public static final int INDEX_MOVIE_POSTER = 1;
-    public static final int INDEX_MOVIE_SORT = 2;
 
 
     private RecyclerView mMoviesList;
@@ -88,10 +88,10 @@ public class MainActivity extends AppCompatActivity implements
         PreferenceManager.getDefaultSharedPreferences(this)
                 .registerOnSharedPreferenceChangeListener(this);
 
-        String prefSortBy = MoviePreferences.getPrefSortBy(this);
-        loadMovieData(prefSortBy);
+        MovieSyncUtils.initialize(this);
     }
 
+    //May not need this method any longer
     private void loadMovieData(String orderBy) {
         showMovieGrid();
         Context context = this;
@@ -103,8 +103,8 @@ public class MainActivity extends AppCompatActivity implements
             Log.d(TAG, "loadMovieData for favorites");
         }
         else if(network) {
-            Log.d(TAG, "going to call api from loadMovieData");
-            new MovieQueryAsyncTask(context).execute(orderBy);
+            Log.d(TAG, "NOT going to call api from loadMovieData");
+           // new MovieQueryAsyncTask(context).execute(orderBy);
         } else {
            // showErrorMsg();
             new MovieAsyncTaskLoader(this).loadInBackground();
@@ -167,12 +167,10 @@ public class MainActivity extends AppCompatActivity implements
         mMovieAdapter.swapCursor(movieData);
         if (mPosition == RecyclerView.NO_POSITION) mPosition = 0;
         mMoviesList.smoothScrollToPosition(mPosition);
-        if (mMovieDataCursor == null) {
-            showErrorMsg();
+        if (mMovieDataCursor.getCount() != 0) {
+            showMovieGrid();
         } else {
-            Log.d(TAG, "Cursor not null, calling loadMoveData");
-            String prefSortBy = MoviePreferences.getPrefSortBy(this);
-            loadMovieData(prefSortBy);
+            showErrorMsg();
         }
 
     }
@@ -210,6 +208,10 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        String prefSortBy = MoviePreferences.getPrefSortBy(this);
+        if (!prefSortBy.equals(getString(R.string.order_by_favorite_value))) {
+            MovieSyncUtils.initialize(this);
+        }
         getSupportLoaderManager().restartLoader(ID_MOVIE_LOADER, null, this);
         PREFERENCES_HAVE_BEEN_UPDATED = true;
     }
@@ -273,46 +275,5 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
-
-    private static class MovieQueryAsyncTask extends AsyncTask<String, Void, String> {
-        private WeakReference<Context> mContextReference;
-
-        private MovieQueryAsyncTask(Context context) {
-            mContextReference = new WeakReference<>(context);
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            String orderPref = params[0];
-            URL movieRequestUrl = NetworkUtils.buildUrl(orderPref);
-            String jsonMoviesResponse;
-
-            try {
-                jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-            return jsonMoviesResponse;
-        }
-
-        @Override
-        protected void onPostExecute(String jsonMovieResponse) {
-            Context context = mContextReference.get();
-            if (jsonMovieResponse != null && !jsonMovieResponse.equals("")) {
-                try {
-                    int rowsAdded = MovieDBJsonUtils.getMovieDataFromJson(context, jsonMovieResponse);
-                    Log.d(TAG, "AsyncTask onPostExecute with new rows " + rowsAdded);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
 }
 

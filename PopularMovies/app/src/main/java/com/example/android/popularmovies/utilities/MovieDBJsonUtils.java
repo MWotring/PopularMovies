@@ -21,7 +21,7 @@ public final class MovieDBJsonUtils {
 
     private static final String TAG = MovieDBJsonUtils.class.getSimpleName();
 
-    public static int getMovieDataFromJson(Context context, String movieJsonString)
+    public static ContentValues[] getMovieDataFromJson(Context context, String movieJsonString)
             throws JSONException {
 
         /* All results are children of the "results" object */
@@ -76,10 +76,6 @@ public final class MovieDBJsonUtils {
 
             movieDataContentValues[i] = movieData;
         }
-        ContentResolver resolver = context.getContentResolver();
-        int rowsAdded = resolver.bulkInsert(MovieContract.MovieEntry.CONTENT_URI, movieDataContentValues);
-        Log.d(TAG, "Bulk insert added movies numbered to " + rowsAdded);
-
-        return rowsAdded;
+        return movieDataContentValues;
     }
 }
