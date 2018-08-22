@@ -9,7 +9,7 @@ public class MovieSyncIntentService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        MovieSyncTask.syncMovies(this);
+         MovieSyncTask.syncMovies(this);
     }
-
 }
+

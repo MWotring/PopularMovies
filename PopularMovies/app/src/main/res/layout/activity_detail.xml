@@ -38,5 +38,17 @@
         android:layout_height="wrap_content"
         android:padding="16dp" />
 
+    <TextView
+        android:id="@+id/movie_trailer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"/>
+
+    <TextView
+        android:id="@+id/movie_reviews"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp" />
+
     </LinearLayout>
 </ScrollView>

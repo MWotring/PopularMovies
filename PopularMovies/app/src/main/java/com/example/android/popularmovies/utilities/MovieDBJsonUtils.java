@@ -13,6 +13,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 /**
  * Created by megan.wotring on 2/11/18.
  */
@@ -77,5 +80,66 @@ public final class MovieDBJsonUtils {
             movieDataContentValues[i] = movieData;
         }
         return movieDataContentValues;
+    }
+
+    public static ArrayList<HashMap<String, String>> getTrailerDataFromJson(Context context, String trailerJsonString)
+            throws JSONException {
+        final String MDB_RESULTS = "results";
+        final String MDB_KEY = "key";
+        final String MDB_NAME = "name";
+        final String MDB_SITE = "site";
+
+        JSONObject trailerJson = new JSONObject(trailerJsonString);
+        Log.d(TAG, "TrailerJSON " + trailerJsonString);
+        JSONArray trailerArray = trailerJson.getJSONArray(MDB_RESULTS);
+        ArrayList<HashMap<String, String>> movieTrailerDataArrayList = new ArrayList<>();
+
+        for (int i = 0; i < trailerArray.length(); i++) {
+            String key;
+            String name;
+            String site;
+
+            JSONObject movietrailerJson = trailerArray.getJSONObject(i);
+            key = movietrailerJson.getString(MDB_KEY);
+            name = movietrailerJson.getString(MDB_NAME);
+            site = movietrailerJson.getString(MDB_SITE);
+
+            HashMap<String, String> trailerHashMapData = new HashMap<>();
+            trailerHashMapData.put("KEY", key);
+            trailerHashMapData.put("NAME", name);
+            trailerHashMapData.put("SITE", site);
+
+            movieTrailerDataArrayList.add(trailerHashMapData);
+        }
+        return movieTrailerDataArrayList;
+    }
+
+    public static ArrayList<HashMap<String, String>> getReviewDataFromJson(Context context, String reviewJsonString)
+            throws JSONException {
+        final String MDB_RESULTS = "results";
+        final String MDB_AUTHOR = "author";
+        final String MDB_CONTENT = "content";
+
+        JSONObject reviewJSON = new JSONObject((reviewJsonString));
+        Log.d(TAG, "ReviewJson" + reviewJsonString);
+        JSONArray reviewArray = reviewJSON.getJSONArray(MDB_RESULTS);
+
+        ArrayList<HashMap<String, String>> reviewsDataArrayList = new ArrayList<>();
+
+        for (int i = 0; i < reviewArray.length(); i++) {
+            String author;
+            String content;
+
+            JSONObject movieReviewJson = reviewArray.getJSONObject(i);
+            author = movieReviewJson.getString(MDB_AUTHOR);
+            content = movieReviewJson.getString(MDB_CONTENT);
+
+            HashMap<String, String> reviewHashmapValues = new HashMap<>();
+            reviewHashmapValues.put("AUTHOR", author);
+            reviewHashmapValues.put("CONTENT", content);
+
+            reviewsDataArrayList.add(reviewHashmapValues);
+        }
+        return reviewsDataArrayList;
     }
 }
