@@ -53,6 +53,14 @@ public final class NetworkUtils {
         return url;
     }
 
+    public static Uri buildYoutubeUrl(String key) {
+        Uri builtUri = Uri.parse(YOUTUBE_BASE_URL).buildUpon()
+                .appendQueryParameter(YOUTUBE_VIDEO_QUERY, key)
+                .build();
+
+        Log.v(TAG, "Built URI " + builtUri);
+        return builtUri;
+    }
 
     public static URL buildMovieUrl(String movieApiId, String endpoint) {
         URL url = null;

@@ -7,16 +7,18 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.net.Uri;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.android.popularmovies.data.MovieContract;
-import com.example.android.popularmovies.utilities.MovieDBJsonUtils;
 import com.example.android.popularmovies.utilities.NetworkUtils;
 import com.example.android.popularmovies.loaders.ReviewLoader;
 import com.example.android.popularmovies.loaders.TrailerLoader;
@@ -51,14 +53,15 @@ public class DetailActivity extends AppCompatActivity implements
     private static final int ID_TRAILER_LOADER = 812;
     private static final int ID_REVIEW_LOADER = 110;
 
-   // private TrailerCallback trailerCallback = new TrailerCallback();
-   // private ReviewsCallback reviewsCallback = new ReviewsCallback();
-
     TextView mTitleTextView;
     ImageView mPosterView;
     TextView mSynopsisTextView;
     TextView mUserRatingTextView;
     TextView mReleaseDateTextView;
+    private RecyclerView mTrailersList;
+    private RecyclerView mReviewsList;
+    private TrailerAdapter mTrailerAdapter;
+    private ReviewAdapter mReviewAdapter;
     String mTitle;
     String mSynopsis;
     String mPosterPath;
@@ -80,6 +83,8 @@ public class DetailActivity extends AppCompatActivity implements
         mSynopsisTextView = findViewById(R.id.movie_synopsis);
         mUserRatingTextView = findViewById(R.id.movie_rated);
         mReleaseDateTextView = findViewById(R.id.movie_released);
+        mTrailersList = (RecyclerView) findViewById(R.id.rv_movie_trailers);
+        mReviewsList = (RecyclerView) findViewById(R.id.rv_movie_reviews);
 
         Intent intentThatStartedDetails = getIntent();
         mApiId = intentThatStartedDetails.getStringExtra("MovieApiId");
@@ -93,6 +98,14 @@ public class DetailActivity extends AppCompatActivity implements
             getSupportLoaderManager().initLoader(ID_DETAIL_LOADER, bundle, this);
             getSupportLoaderManager().initLoader(ID_TRAILER_LOADER, null, this);
             getSupportLoaderManager().initLoader(ID_REVIEW_LOADER, null, this);
+            LinearLayoutManager trailerLayoutManager = new LinearLayoutManager(this);
+            LinearLayoutManager reviewLayoutManager = new LinearLayoutManager(this);
+            mTrailersList.setLayoutManager(trailerLayoutManager);
+            mReviewsList.setLayoutManager(reviewLayoutManager);
+            mTrailerAdapter = new TrailerAdapter(this);
+            mReviewAdapter = new ReviewAdapter(this);
+            mTrailersList.setAdapter(mTrailerAdapter);
+            mReviewsList.setAdapter(mReviewAdapter);
         }
         setFavoriteValue("true"); //only for creating some data to view initially
     }
@@ -111,6 +124,7 @@ public class DetailActivity extends AppCompatActivity implements
                 selectionArgs);
         Log.d(TAG, "Rows were updated " + updatedRows);
     }
+
 
     @Override
     public Loader onCreateLoader(int loaderId, Bundle bundle) {
@@ -177,6 +191,8 @@ public class DetailActivity extends AppCompatActivity implements
         } else if (id == ID_TRAILER_LOADER) {
 
             ArrayList<HashMap<String, String>> mTrailerValues = (ArrayList<HashMap<String, String>>) data;
+            mTrailerAdapter.setTrailerData((ArrayList<HashMap<String, String>>) data);
+
             Iterator iterator = mTrailerValues.iterator();
             while (iterator.hasNext()) {
                 HashMap<String, String> trailerDataMap = (HashMap<String, String>) iterator.next();
@@ -188,6 +204,8 @@ public class DetailActivity extends AppCompatActivity implements
         } else if (id == ID_REVIEW_LOADER) {
 
             ArrayList<HashMap<String, String>> mReviewValues = (ArrayList<HashMap<String, String>>) data;
+            mReviewAdapter.setReviewData((ArrayList<HashMap<String, String>>) data);
+
             Iterator iterator = mReviewValues.iterator();
             while (iterator.hasNext()) {
                 HashMap<String, String> trailerDataMap = (HashMap<String, String>) iterator.next();
@@ -207,11 +225,11 @@ public class DetailActivity extends AppCompatActivity implements
 
         switch (id) {
             case ID_DETAIL_LOADER:
-
+                mCursor = null;
             case ID_REVIEW_LOADER:
-
+                mReviewsValues = null;
             case ID_TRAILER_LOADER:
-
+                mTrailerValues = null;
         }
 
     }

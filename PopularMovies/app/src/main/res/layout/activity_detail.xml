@@ -14,6 +14,7 @@
         android:id="@+id/original_title_txt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        tools:text="Deadpool 2"
         android:textSize="40sp"
         android:padding="16dp"/>
     <ImageView
@@ -25,30 +26,34 @@
         android:id="@+id/movie_synopsis"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        tools:text="Wisecracking mercenary Deadpool battles the evil and powerful Cable"
         android:padding="16dp"/>
     <TextView
         android:id="@+id/movie_rated"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        tools:text="7.6"
         android:padding="16dp"/>
 
     <TextView
         android:id="@+id/movie_released"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        tools:text="2018-05-15"
         android:padding="16dp" />
 
-    <TextView
-        android:id="@+id/movie_trailer"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_movie_trailers"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        tools:text="Deadpool 2 The Trailer"
         android:padding="16dp"/>
 
-    <TextView
-        android:id="@+id/movie_reviews"
+        <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_movie_reviews"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+            tools:text="The Mercenary with a mouth is back with the eagerly awaited arrival of “Deadpool 2”. The films sees the generally well-meaning but highly dysfunctional Deadpool (Ryan Reynolds), back to taking out bad guys as a contract player but also managing his relationship with Vanessa (Morena Baccarin)."
         android:padding="16dp" />
-
     </LinearLayout>
 </ScrollView>
