@@ -9,10 +9,6 @@ import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.data.MoviePreferences;
 import com.example.android.popularmovies.utilities.MovieDBJsonUtils;
 import com.example.android.popularmovies.utilities.NetworkUtils;
-
-import org.json.JSONException;
-
-import java.io.IOException;
 import java.net.URL;
 
 public class MovieSyncTask {
@@ -21,29 +17,34 @@ public class MovieSyncTask {
     synchronized public static void syncMovies(Context context) {
         String jsonMoviesResponse;
         ContentValues[] movieDataContentValues;
+        String prefSortBy = MoviePreferences.getPrefSortBy(context);
+        if (!prefSortBy.equals("favorite")) {
+            Log.d(TAG, "sort should not be favorite: " + prefSortBy);
+            try {
 
-        try {
-            String prefSortBy = MoviePreferences.getPrefSortBy(context);
-            URL movieRequestUrl = NetworkUtils.buildUrl(prefSortBy);
+                URL movieRequestUrl = NetworkUtils.buildUrl(prefSortBy);
 
-            jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
-
-
-            movieDataContentValues = MovieDBJsonUtils.getMovieDataFromJson(context, jsonMoviesResponse);
-
-            if (movieDataContentValues != null && movieDataContentValues.length != 0) {
-                ContentResolver resolver = context.getContentResolver();
-
-                //TODO: delete old data that matches the sort preference
-
-                /* Insert new movies to db for sort pref */
-                int rowsAdded = resolver.bulkInsert(MovieContract.MovieEntry.CONTENT_URI, movieDataContentValues);
-                 Log.d(TAG, "Bulk insert added movies numbered to " + rowsAdded);
+                jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
 
 
+                movieDataContentValues = MovieDBJsonUtils.getMovieDataFromJson(context, jsonMoviesResponse);
+
+                if (movieDataContentValues != null && movieDataContentValues.length != 0) {
+                    ContentResolver resolver = context.getContentResolver();
+
+                    //TODO: delete old data that matches the sort preference
+
+                    /* Insert new movies to db for sort pref */
+                    int rowsAdded = resolver.bulkInsert(MovieContract.MovieEntry.CONTENT_URI, movieDataContentValues);
+                    Log.d(TAG, "Bulk insert added movies numbered to " + rowsAdded);
+
+
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+
     }
+
 }
