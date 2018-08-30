@@ -38,11 +38,9 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
     @Override
     public void onBindViewHolder(ReviewViewHolder viewHolder, int position) {
         HashMap<String, String> reviewDataMap = mReviewData.get(position);
-        String author = reviewDataMap.get("AUTHOR");
         String content = reviewDataMap.get("CONTENT");
-        Log.d(TAG, "Review bind view holder got author and content " + author + content);
-        viewHolder.reviewContentTextView.setText("Author: " + author);
-        viewHolder.reviewAuthorTextView.setText(content);
+        Log.d(TAG, "Review bind view holder got content " + content);
+        viewHolder.reviewContentTextView.setText(content);
     }
 
     @Override
@@ -51,13 +49,12 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
         return mReviewData.size(); }
 
     class ReviewViewHolder extends RecyclerView.ViewHolder {
-        TextView reviewAuthorTextView;
+
         TextView reviewContentTextView;
 
         public ReviewViewHolder(View itemView) {
             super(itemView);
 
-            reviewAuthorTextView = (TextView) itemView.findViewById(R.id.review_author);
             reviewContentTextView = (TextView) itemView.findViewById(R.id.review_content);
         }
     }

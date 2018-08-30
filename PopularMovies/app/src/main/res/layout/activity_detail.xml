@@ -45,15 +45,20 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_movie_trailers"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="76dp"
         tools:text="Deadpool 2 The Trailer"
-        android:padding="16dp"/>
+        android:padding="16dp"
+        android:clipToPadding="false"
+        android:layout_margin="@dimen/fab_margin"/>
 
-        <android.support.v7.widget.RecyclerView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_movie_reviews"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="651dp"
             tools:text="The Mercenary with a mouth is back with the eagerly awaited arrival of “Deadpool 2”. The films sees the generally well-meaning but highly dysfunctional Deadpool (Ryan Reynolds), back to taking out bad guys as a contract player but also managing his relationship with Vanessa (Morena Baccarin)."
-        android:padding="16dp" />
+        android:padding="16dp"
+        android:clipToPadding="false"
+        android:layout_margin="@dimen/fab_margin"/>
+
     </LinearLayout>
 </ScrollView>

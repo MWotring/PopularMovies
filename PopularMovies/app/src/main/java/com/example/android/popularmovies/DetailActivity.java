@@ -13,9 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.net.Uri;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.android.popularmovies.data.MovieContract;
@@ -27,7 +25,7 @@ import com.squareup.picasso.Picasso;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+
 
 public class DetailActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks {
@@ -58,8 +56,6 @@ public class DetailActivity extends AppCompatActivity implements
     TextView mSynopsisTextView;
     TextView mUserRatingTextView;
     TextView mReleaseDateTextView;
-    private RecyclerView mTrailersList;
-    private RecyclerView mReviewsList;
     private TrailerAdapter mTrailerAdapter;
     private ReviewAdapter mReviewAdapter;
     String mTitle;
@@ -69,8 +65,6 @@ public class DetailActivity extends AppCompatActivity implements
     String mReleaseDate;
     String mApiId;
     String mFavorite;
-    ArrayList<HashMap<String, String>> mTrailerValues;
-    ArrayList<HashMap<String, String>> mReviewsValues;
     Cursor mCursor;
 
     @Override
@@ -83,8 +77,8 @@ public class DetailActivity extends AppCompatActivity implements
         mSynopsisTextView = findViewById(R.id.movie_synopsis);
         mUserRatingTextView = findViewById(R.id.movie_rated);
         mReleaseDateTextView = findViewById(R.id.movie_released);
-        mTrailersList = (RecyclerView) findViewById(R.id.rv_movie_trailers);
-        mReviewsList = (RecyclerView) findViewById(R.id.rv_movie_reviews);
+        RecyclerView trailersList = findViewById(R.id.rv_movie_trailers);
+        RecyclerView reviewsList = findViewById(R.id.rv_movie_reviews);
 
         Intent intentThatStartedDetails = getIntent();
         mApiId = intentThatStartedDetails.getStringExtra("MovieApiId");
@@ -100,12 +94,12 @@ public class DetailActivity extends AppCompatActivity implements
             getSupportLoaderManager().initLoader(ID_REVIEW_LOADER, null, this);
             LinearLayoutManager trailerLayoutManager = new LinearLayoutManager(this);
             LinearLayoutManager reviewLayoutManager = new LinearLayoutManager(this);
-            mTrailersList.setLayoutManager(trailerLayoutManager);
-            mReviewsList.setLayoutManager(reviewLayoutManager);
+            trailersList.setLayoutManager(trailerLayoutManager);
+            reviewsList.setLayoutManager(reviewLayoutManager);
             mTrailerAdapter = new TrailerAdapter(this);
             mReviewAdapter = new ReviewAdapter(this);
-            mTrailersList.setAdapter(mTrailerAdapter);
-            mReviewsList.setAdapter(mReviewAdapter);
+            trailersList.setAdapter(mTrailerAdapter);
+            reviewsList.setAdapter(mReviewAdapter);
         }
         setFavoriteValue("true"); //only for creating some data to view initially
     }
@@ -144,10 +138,8 @@ public class DetailActivity extends AppCompatActivity implements
                         null);
 
             case ID_TRAILER_LOADER:
-                Log.d(TAG, "onCreateLoader Trailer section");
                 return new TrailerLoader(this, mApiId);
             case ID_REVIEW_LOADER:
-                Log.d(TAG, "onCreateLoader Review section");
                 return new ReviewLoader(this, mApiId);
             default:
                 throw new RuntimeException("Loader Not Implemented: " + loaderId);
@@ -189,31 +181,9 @@ public class DetailActivity extends AppCompatActivity implements
                     .into(mPosterView);
 
         } else if (id == ID_TRAILER_LOADER) {
-
-            ArrayList<HashMap<String, String>> mTrailerValues = (ArrayList<HashMap<String, String>>) data;
             mTrailerAdapter.setTrailerData((ArrayList<HashMap<String, String>>) data);
-
-            Iterator iterator = mTrailerValues.iterator();
-            while (iterator.hasNext()) {
-                HashMap<String, String> trailerDataMap = (HashMap<String, String>) iterator.next();
-                String key = trailerDataMap.get("KEY");
-                String name = trailerDataMap.get("NAME");
-                String site = trailerDataMap.get("SITE");
-                Log.d(TAG, "Trailer info returned with " + key + " key, and site: " + site);
-            }
         } else if (id == ID_REVIEW_LOADER) {
-
-            ArrayList<HashMap<String, String>> mReviewValues = (ArrayList<HashMap<String, String>>) data;
             mReviewAdapter.setReviewData((ArrayList<HashMap<String, String>>) data);
-
-            Iterator iterator = mReviewValues.iterator();
-            while (iterator.hasNext()) {
-                HashMap<String, String> trailerDataMap = (HashMap<String, String>) iterator.next();
-
-                String author = trailerDataMap.get("AUTHOR");
-                String content = trailerDataMap.get("CONTENT");
-                Log.d(TAG, "Review info returned with " + author + " author, and content: " + content);
-            }
         }
 
 
@@ -227,117 +197,13 @@ public class DetailActivity extends AppCompatActivity implements
             case ID_DETAIL_LOADER:
                 mCursor = null;
             case ID_REVIEW_LOADER:
-                mReviewsValues = null;
+                mReviewAdapter.setReviewData(null);
             case ID_TRAILER_LOADER:
-                mTrailerValues = null;
+                mTrailerAdapter.setTrailerData(null);
         }
 
     }
-
-/*
-    @Override
-    public void onLoaderReset(Loader<D> loader) {
-        int id = loader.getId();
-
-        if (id == ID_DETAIL_LOADER) {
-            mCursor = null;
-        } else if (id == ID_TRAILER_LOADER) {
-            mTrailerValues = null;
-        } else if (id == ID_REVIEW_LOADER) {
-            mReviewsValues = null;
-        }
-    }
-*/
-
-/*
-    private static class TrailerCallback implements LoaderManager.LoaderCallbacks<ArrayList<HashMap<String, String>>> {
-        ArrayList<HashMap<String, String>> mTrailerValues;
-        String mApiId;
-
-        @Override
-        public Loader<ArrayList<HashMap<String, String>>> onCreateLoader(int id, Bundle args) {
-            mApiId = args.getString("MovieApiId");
-            return new AsyncTaskLoader<ArrayList<HashMap<String, String>>>(DetailActivity.this) {
-                @Override
-                public ArrayList<HashMap<String, String>> loadInBackground() {
-                    String jsonMoviesResponse;
-                    ArrayList<HashMap<String, String>> movieDataArrayList;
-
-                    try {
-                        URL movieRequestUrl = NetworkUtils.buildDetailURL(mApiId, "videos");
-                        Log.d(TAG, "URL for trailers: " + movieRequestUrl);
-                        jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
-                        Log.d(TAG, "API resp trailer: " + jsonMoviesResponse);
-                        movieDataArrayList = MovieDBJsonUtils.getTrailerDataFromJson(getContext(), jsonMoviesResponse);
-                        return movieDataArrayList;
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
-                @Override
-                public void deliverResult(ArrayList<HashMap<String, String>> deliveredValues) {
-                    mTrailerValues = deliveredValues;
-                    Log.d(TAG, "trailer values delivered");
-                    super.deliverResult(deliveredValues);
-                }
-                @Override
-                public void onLoaderReset(Loader <ArrayList<HashMap<String, String>>> loader){
-                    int id = loader.getId();
-                    if (id == ID_TRAILER_LOADER) {
-                        mTrailerValues = null;
-                    }
-                }
-            };
-        }
-
-
-    }
-
-
-    private class ReviewsCallback implements LoaderManager.LoaderCallbacks<ArrayList<HashMap<String, String>>> {
-        ArrayList<HashMap<String, String>> mReviewsValues;
-        String mApiId;
-
-        @Override
-        public Loader<ArrayList<HashMap<String, String>>> onCreateLoader(int id, Bundle args) {
-            mApiId = args.getString("MovieApiId");
-            return new AsyncTaskLoader<ArrayList<HashMap<String, String>>>(DetailActivity.this) {
-                @Override
-                public ArrayList<HashMap<String, String>> loadInBackground() {
-                    String jsonMoviesResponse;
-                    ArrayList<HashMap<String, String>> movieDataArrayList;
-
-                    try {
-                        URL movieRequestUrl = NetworkUtils.buildMovieUrl(mApiId, "reviews");
-                        Log.d(TAG, "Reviews url: " + movieRequestUrl);
-                        jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
-                        Log.d(TAG, "Reviews json resp: " + jsonMoviesResponse);
-                        movieDataArrayList = MovieDBJsonUtils.getReviewDataFromJson(getContext(), jsonMoviesResponse);
-                        return movieDataArrayList;
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
-                @Override
-                public void deliverResult(ArrayList<HashMap<String, String>> deliveredValues) {
-                    mReviewsValues = deliveredValues;
-                    Log.d(TAG, "reviews result delivered");
-                    super.deliverResult(deliveredValues);
-                }
-                @Override
-                public void onLoaderReset(Loader <ArrayList<HashMap<String, String>>> loader){
-                    int id = loader.getId();
-                    if (id == ID_REVIEW_LOADER) {
-                        mReviewsValues = null;
-                    }
-                }
-            };
-        }
-
-    }
-    */
 }
+
 //https://stackoverflow.com/questions/15414206/use-different-asynctask-loaders-in-one-activity
 //https://stackoverflow.com/questions/15643907/multiple-loaders-in-same-activity

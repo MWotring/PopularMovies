@@ -67,9 +67,9 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.movie_grid);
 
-        mError = (TextView) findViewById(R.id.network_error_message);
+        mError = findViewById(R.id.network_error_message);
 
-        mMoviesList = (RecyclerView) findViewById(R.id.recyclerview_movies);
+        mMoviesList = findViewById(R.id.recyclerview_movies);
         int numberOfColumns = 3;
         mMoviesList.setHasFixedSize(true);
         mMoviesList.setLayoutManager(new GridLayoutManager(this, numberOfColumns));
