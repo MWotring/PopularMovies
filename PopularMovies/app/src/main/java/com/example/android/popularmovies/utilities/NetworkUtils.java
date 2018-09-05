@@ -20,7 +20,7 @@ import java.util.Scanner;
 public final class NetworkUtils {
 
     /* Remember to  take this out before pushing to github!!*/
-    private static final String MOVIE_API_KEY = "";
+    private static final String MOVIE_API_KEY = "79845cd4ba126ddfcdc01ef483e4f2a9";
 
     private static final String TAG = NetworkUtils.class.getSimpleName();
 
@@ -30,7 +30,7 @@ public final class NetworkUtils {
     private static final String KEY_PARAM = "api_key";
     private static final String YOUTUBE_BASE_URL = "https://www.youtube.com/watch";
     private static final String YOUTUBE_VIDEO_QUERY = "v";
-    private static final String MOVIE_VIDEO_URL = "videos";
+    //private static final String MOVIE_VIDEO_URL = "videos";
 
     /**
      * Builds the URL used to talk to the movie api using a sort of popular or highest rated.

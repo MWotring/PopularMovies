@@ -54,6 +54,7 @@ public class DetailActivity extends AppCompatActivity implements
     TextView mTitleTextView;
     ImageView mPosterView;
     TextView mSynopsisTextView;
+    ImageView mFavoriteImageView;
     TextView mUserRatingTextView;
     TextView mReleaseDateTextView;
     private TrailerAdapter mTrailerAdapter;
@@ -77,6 +78,8 @@ public class DetailActivity extends AppCompatActivity implements
         mSynopsisTextView = findViewById(R.id.movie_synopsis);
         mUserRatingTextView = findViewById(R.id.movie_rated);
         mReleaseDateTextView = findViewById(R.id.movie_released);
+        mFavoriteImageView = findViewById(R.id.favorite_iv);
+
         RecyclerView trailersList = findViewById(R.id.rv_movie_trailers);
         RecyclerView reviewsList = findViewById(R.id.rv_movie_reviews);
 
@@ -118,6 +121,7 @@ public class DetailActivity extends AppCompatActivity implements
                 selectionArgs);
         Log.d(TAG, "Rows were updated " + updatedRows);
     }
+
 
 
     @Override
