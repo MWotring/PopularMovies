@@ -16,10 +16,10 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
     private static String TAG = ReviewAdapter.class.getSimpleName();
 
     private ArrayList<HashMap<String, String>> mReviewData;
-
+    Context mContext;
 
     public ReviewAdapter(@NonNull Context context) {
-
+        mContext = context;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewView
     @Override
     public void onBindViewHolder(ReviewViewHolder viewHolder, int position) {
         HashMap<String, String> reviewDataMap = mReviewData.get(position);
-        String content = reviewDataMap.get("CONTENT");
+        String content = reviewDataMap.get(mContext.getString(R.string.content_string));
         Log.d(TAG, "Review bind view holder got content " + content);
         viewHolder.reviewContentTextView.setText(content);
     }

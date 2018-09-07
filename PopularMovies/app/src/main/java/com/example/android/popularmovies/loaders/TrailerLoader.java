@@ -5,6 +5,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.example.android.popularmovies.DetailActivity;
+import com.example.android.popularmovies.R;
 import com.example.android.popularmovies.utilities.MovieDBJsonUtils;
 import com.example.android.popularmovies.utilities.NetworkUtils;
 
@@ -16,10 +17,12 @@ public class TrailerLoader extends AsyncTaskLoader<ArrayList<HashMap<String, Str
     private static final String TAG = DetailActivity.class.getSimpleName();
     private ArrayList<HashMap<String, String>> mTrailerData;
     private String mApiId;
+    Context mContext;
 
     public TrailerLoader(Context context, String movieApiId) {
         super(context);
         this.mApiId = movieApiId;
+        mContext = context;
     }
 
     @Override
@@ -35,7 +38,8 @@ public class TrailerLoader extends AsyncTaskLoader<ArrayList<HashMap<String, Str
         ArrayList<HashMap<String, String>> movieDataArrayList;
 
         try {
-            URL movieTrailerRequestUrl = NetworkUtils.buildDetailURL(mApiId, "videos");
+            URL movieTrailerRequestUrl = NetworkUtils.buildDetailURL(mApiId,
+                    mContext.getString(R.string.trailer_key));
             Log.d(TAG, "URL for trailers: " + movieTrailerRequestUrl);
             jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieTrailerRequestUrl);
             Log.d(TAG, "API resp trailer: " + jsonMoviesResponse);

@@ -1,8 +1,6 @@
 package com.example.android.popularmovies;
 
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -10,8 +8,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-import com.example.android.popularmovies.utilities.NetworkUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,9 +18,15 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerV
     private ArrayList<HashMap<String, String>> mTrailerData;
 
     private final Context mContext;
+    OnItemClickListener listener;
 
-    public TrailerAdapter(@NonNull Context context) {
+    public interface OnItemClickListener {
+        void onItemClick(String youTubeKey);
+    }
+
+    public TrailerAdapter(@NonNull Context context, OnItemClickListener listener) {
         mContext = context;
+        this.listener = listener;
     }
 
     @Override
@@ -44,9 +46,11 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerV
     @Override
     public void onBindViewHolder(TrailerViewHolder viewHolder, int position) {
         HashMap<String, String> trailerDataMap = mTrailerData.get(position);
-        String name = trailerDataMap.get("NAME");
+        String name = trailerDataMap.get(mContext.getString(R.string.name_string));
+        String youtubeKey = trailerDataMap.get(mContext.getString(R.string.key_string));
         Log.d(TAG, "Trailer bind view holder got name " + name);
         viewHolder.mTrailerTitle.setText(name);
+        viewHolder.bind(listener, youtubeKey);
     }
 
     @Override
@@ -62,30 +66,17 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerV
             super(itemView);
 
             mTrailerTitle = (TextView) itemView.findViewById(R.id.trailer_item);
+        }
+
+        public void bind(final OnItemClickListener listener, final String youTubeKey) {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    int adapterPosition = getAdapterPosition();
-                    HashMap<String, String> trailerData = mTrailerData.get(adapterPosition);
-                    String youtubeKey = trailerData.get("KEY");
-                    String site = trailerData.get("SITE");
-                    Log.d(TAG, "Reached onClick with site" + site);
-
-                    if (site.equals("YouTube")) {
-                        Uri youtubeUri = NetworkUtils.buildYoutubeUrl(youtubeKey);
-                        Intent intent = new Intent(Intent.ACTION_VIEW, youtubeUri);
-                        if (intent.resolveActivity(mContext.getPackageManager()) != null) {
-                            mContext.startActivity(intent);
-                            Log.d(TAG, "Tried to open " + youtubeUri.toString());
-                        }
-                    } else {
-                        Log.d(TAG, "Unable to handle non-youtube video source");
-                    }
+                    Log.d(TAG, "ViewHolder onClick");
+                    listener.onItemClick(youTubeKey);
                 }
             });
         }
-
-
     }
 
     public void setTrailerData(ArrayList<HashMap<String, String>> trailerData) {
@@ -94,3 +85,5 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerV
     }
 
 }
+
+//https://antonioleiva.com/recyclerview-listener/

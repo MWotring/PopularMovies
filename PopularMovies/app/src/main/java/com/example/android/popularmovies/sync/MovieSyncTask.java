@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.util.Log;
 
+import com.example.android.popularmovies.R;
 import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.data.MoviePreferences;
 import com.example.android.popularmovies.utilities.MovieDBJsonUtils;
@@ -18,8 +19,8 @@ public class MovieSyncTask {
         String jsonMoviesResponse;
         ContentValues[] movieDataContentValues;
         String prefSortBy = MoviePreferences.getPrefSortBy(context);
-        if (!prefSortBy.equals("favorite")) {
-            Log.d(TAG, "sort should not be favorite: " + prefSortBy);
+        if (!prefSortBy.equals(context.getString(R.string.favorite_string))) {
+
             try {
 
                 URL movieRequestUrl = NetworkUtils.buildUrl(prefSortBy);
@@ -31,8 +32,6 @@ public class MovieSyncTask {
 
                 if (movieDataContentValues != null && movieDataContentValues.length != 0) {
                     ContentResolver resolver = context.getContentResolver();
-
-                    //TODO: delete old data that matches the sort preference
 
                     /* Insert new movies to db for sort pref */
                     int rowsAdded = resolver.bulkInsert(MovieContract.MovieEntry.CONTENT_URI, movieDataContentValues);

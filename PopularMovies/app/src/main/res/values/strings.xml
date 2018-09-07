@@ -7,9 +7,20 @@
     <string name="title_activity_detail">DetailActivity</string>
     <string name="movie_poster">movie_poster</string>
     <string name="sort_by">Movie Sort Order</string>
-    <string name="order_by_rate_value">top_rated</string>
-    <string name="order_by_pop_value">popular</string>
-    <string name="order_by_favorite_value">favorite</string>
-    <string name="not_favorite_value">false</string>
-    <string name="favorite_value">true</string>
+    <string name="order_by_rate_string">top_rated</string>
+    <string name="order_by_pop_string">popular</string>
+    <string name="favorite_string">favorite</string>
+    <string name="false_string">false</string>
+    <string name="true_string">true</string>
+    <string name="fave_error_msg">You don\'t have any favorite movies added yet.</string>
+    <string name="reviews_key">reviews</string>
+    <string name="trailer_key">videos</string>
+    <string name="key_string">key</string>
+    <string name="site_string">site</string>
+    <string name="name_string">name</string>
+    <string name="content_string">content</string>
+    <string name="youtube_string">YouTube</string>
+    <string name="intent_movie_api_id_string">MovieApiId</string>
+    <string name="rating_description">Average viewer rating: </string>
+    <string name="release_date_description">Film release date: </string>
 </resources>

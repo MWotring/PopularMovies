@@ -7,6 +7,7 @@ import android.preference.PreferenceManager;
 public class MoviePreferences {
     public static final String DEFAULT_SORT = "popular";
 
+
     static public void setPrefSortBy(Context context, String sortBy) {
         //later tater
     }
