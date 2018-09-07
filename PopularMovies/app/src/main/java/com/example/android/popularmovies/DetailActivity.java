@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -117,7 +118,18 @@ public class DetailActivity extends AppCompatActivity implements
             LinearLayoutManager reviewLayoutManager = new LinearLayoutManager(this);
             trailersList.setLayoutManager(trailerLayoutManager);
             reviewsList.setLayoutManager(reviewLayoutManager);
-            mTrailerAdapter = new TrailerAdapter(this);
+            TrailerAdapter.OnItemClickListener trailerOnItemClickListener =  new
+                    TrailerAdapter.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(String youTubeKey) {
+                            Uri youtubeUri = NetworkUtils.buildYoutubeUrl(youTubeKey);
+                            Intent intent = new Intent(Intent.ACTION_VIEW, youtubeUri);
+                            if (intent.resolveActivity(mContext.getPackageManager()) != null) {
+                                mContext.startActivity(intent);
+                            }
+                        }
+                    };
+            mTrailerAdapter = new TrailerAdapter(this, trailerOnItemClickListener);
             mReviewAdapter = new ReviewAdapter(this);
             trailersList.setAdapter(mTrailerAdapter);
             reviewsList.setAdapter(mReviewAdapter);
