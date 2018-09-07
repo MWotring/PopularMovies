@@ -122,6 +122,7 @@ public class DetailActivity extends AppCompatActivity implements
                     TrailerAdapter.OnItemClickListener() {
                         @Override
                         public void onItemClick(String youTubeKey) {
+                            Log.d(TAG, "Detail trailer onClick");
                             Uri youtubeUri = NetworkUtils.buildYoutubeUrl(youTubeKey);
                             Intent intent = new Intent(Intent.ACTION_VIEW, youtubeUri);
                             if (intent.resolveActivity(mContext.getPackageManager()) != null) {

@@ -72,6 +72,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerV
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    Log.d(TAG, "ViewHolder onClick");
                     listener.onItemClick(youTubeKey);
                 }
             });
