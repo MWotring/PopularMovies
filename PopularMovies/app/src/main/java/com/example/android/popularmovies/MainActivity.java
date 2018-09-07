@@ -1,13 +1,11 @@
 package com.example.android.popularmovies;
 
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
@@ -27,14 +25,7 @@ import android.widget.TextView;
 import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.data.MoviePreferences;
 import com.example.android.popularmovies.sync.MovieSyncUtils;
-import com.example.android.popularmovies.utilities.MovieDBJsonUtils;
 import com.example.android.popularmovies.utilities.NetworkUtils;
-
-import org.json.JSONException;
-
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements
         MovieAdapter.MovieAdapterOnClickHandler,
@@ -55,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements
     private RecyclerView mMoviesList;
     private MovieAdapter mMovieAdapter;
     private TextView mError;
+    private Context mContext;
     private Cursor mMovieDataCursor;
     private static final int ID_MOVIE_LOADER = 13;
     private static boolean PREFERENCES_HAVE_BEEN_UPDATED = false;
@@ -65,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mContext = this;
         setContentView(R.layout.movie_grid);
 
         mError = findViewById(R.id.network_error_message);
@@ -98,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements
         boolean network = NetworkUtils.isNetworkConnectionPresent(context);
         Log.d(TAG, "load movieData method, orderby " + orderBy);
 
-        if (orderBy.equals(getString(R.string.order_by_favorite_value))) {
+        if (orderBy.equals(getString(R.string.favorite_string))) {
             new MovieAsyncTaskLoader(this).loadInBackground();
             Log.d(TAG, "loadMovieData for favorites");
         }
@@ -121,6 +114,17 @@ public class MainActivity extends AppCompatActivity implements
             mMoviesList.setVisibility(View.VISIBLE);
             mError.setVisibility(View.INVISIBLE);
         }
+
+    private void setCorrectErrorMessage() {
+        if (MoviePreferences.getPrefSortBy(this)
+                .equals(mContext.getString(R.string.favorite_string))) {
+            Log.d(TAG, "Set fav error msg");
+            mError.setText(R.string.fave_error_msg);
+        } else {
+            Log.d(TAG, "set network error msg");
+            mError.setText(R.string.error_msg);
+        }
+    }
 
         @Override
         public void onClick(String movieApiId) {
@@ -169,7 +173,10 @@ public class MainActivity extends AppCompatActivity implements
         mMoviesList.smoothScrollToPosition(mPosition);
         if (mMovieDataCursor.getCount() != 0) {
             showMovieGrid();
+            Log.d(TAG, "Grid should display now with count" + mMovieDataCursor.getCount());
         } else {
+            Log.d(TAG, "Error should display");
+            setCorrectErrorMessage();
             showErrorMsg();
         }
 
@@ -209,11 +216,12 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
         String prefSortBy = MoviePreferences.getPrefSortBy(this);
-        if (!prefSortBy.equals(getString(R.string.order_by_favorite_value))) {
+        if (!prefSortBy.equals(getString(R.string.favorite_string))) {
             MovieSyncUtils.initialize(this);
         }
         getSupportLoaderManager().restartLoader(ID_MOVIE_LOADER, null, this);
         PREFERENCES_HAVE_BEEN_UPDATED = true;
+        setCorrectErrorMessage();
     }
 
     @Override

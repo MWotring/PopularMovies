@@ -8,7 +8,7 @@
     <string-array name="sort_order_values">
         <item>@string/order_by_pop_value</item>
         <item>@string/order_by_rate_value</item>
-        <item>@string/order_by_favorite_value</item>
+        <item>@string/favorite_string</item>
     </string-array>
 </resources>
 

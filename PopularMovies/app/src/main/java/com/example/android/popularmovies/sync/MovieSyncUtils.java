@@ -71,7 +71,7 @@ public class MovieSyncUtils {
                         null);
 
                 if (cursor == null || cursor.getCount() == 0
-                        || prefSortBy.equals(context.getString(R.string.order_by_favorite_value))) {
+                        || prefSortBy.equals(context.getString(R.string.favorite_string))) {
                     startImmediateSync(context);
                 }
                 cursor.close();
