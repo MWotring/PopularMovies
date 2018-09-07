@@ -1,6 +1,5 @@
 package com.example.android.popularmovies.utilities;
 
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.util.Log;
@@ -37,7 +36,7 @@ public final class MovieDBJsonUtils {
         final String MDB_RELEASE_DATE = "release_date";
 
         String orderPref = MoviePreferences.getPrefSortBy(context);
-        String not_favorite = context.getResources().getString(R.string.not_favorite_value);
+        String not_favorite = context.getResources().getString(R.string.false_favorite_value);
 
         /* from String to json object */
         JSONObject moviesJsons = new JSONObject(movieJsonString);

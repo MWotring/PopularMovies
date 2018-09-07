@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -65,6 +66,7 @@ public class DetailActivity extends AppCompatActivity implements
     String mRating;
     String mReleaseDate;
     String mApiId;
+    Context mContext;
     String mFavorite;
     Cursor mCursor;
 
@@ -73,12 +75,28 @@ public class DetailActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
+        mContext = this;
         mTitleTextView = findViewById(R.id.original_title_txt);
         mPosterView = findViewById(R.id.poster_thumbnail);
         mSynopsisTextView = findViewById(R.id.movie_synopsis);
         mUserRatingTextView = findViewById(R.id.movie_rated);
         mReleaseDateTextView = findViewById(R.id.movie_released);
         mFavoriteImageView = findViewById(R.id.favorite_iv);
+
+        mFavoriteImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mFavorite.equals(mContext.getString(R.string.true_favorite_value))) {
+                    Log.d(TAG, "Favorite in onCLick " + mFavorite);
+                    setFavoriteValue(mContext.getString(R.string.false_favorite_value));
+                    set_fav_image();
+                } else {
+                    setFavoriteValue(mContext.getString(R.string.true_favorite_value));
+                    set_fav_image();
+                }
+            }
+
+        });
 
         RecyclerView trailersList = findViewById(R.id.rv_movie_trailers);
         RecyclerView reviewsList = findViewById(R.id.rv_movie_reviews);
@@ -104,7 +122,8 @@ public class DetailActivity extends AppCompatActivity implements
             trailersList.setAdapter(mTrailerAdapter);
             reviewsList.setAdapter(mReviewAdapter);
         }
-        setFavoriteValue("true"); //only for creating some data to view initially
+        //setFavoriteValue("true"); //only for creating some data to view initiallyset_fav_image();
+
     }
 
     private void setFavoriteValue(String valueToSet) {
@@ -122,7 +141,13 @@ public class DetailActivity extends AppCompatActivity implements
         Log.d(TAG, "Rows were updated " + updatedRows);
     }
 
-
+    private void set_fav_image() {
+        if (mFavorite.equals(mContext.getString(R.string.true_favorite_value))) {
+            mFavoriteImageView.setImageResource(R.drawable.ic_baseline_favorite_24px);
+        } else {
+            mFavoriteImageView.setImageResource(R.drawable.ic_baseline_favorite_border_24px);
+        }
+    }
 
     @Override
     public Loader onCreateLoader(int loaderId, Bundle bundle) {
@@ -189,8 +214,7 @@ public class DetailActivity extends AppCompatActivity implements
         } else if (id == ID_REVIEW_LOADER) {
             mReviewAdapter.setReviewData((ArrayList<HashMap<String, String>>) data);
         }
-
-
+        set_fav_image();
     }
 
     @Override
