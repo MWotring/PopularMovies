@@ -16,7 +16,7 @@ public class MovieFirebaseJobService extends  JobService {
 
     @Override
     public boolean onStartJob(final JobParameters jobParameters) {
-        Log.d(TAG, "onStartJob in MovieFIrebaseJobService");
+        Log.d(TAG, "onStartJob in MovieFirebaseJobService");
 
         mFetchMoviesTask = new AsyncTask<Void, Void, Void>() {
             @Override

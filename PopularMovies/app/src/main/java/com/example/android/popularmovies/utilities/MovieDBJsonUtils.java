@@ -36,7 +36,6 @@ public final class MovieDBJsonUtils {
         final String MDB_RELEASE_DATE = "release_date";
 
         String orderPref = MoviePreferences.getPrefSortBy(context);
-        String not_favorite = context.getResources().getString(R.string.false_favorite_value);
 
         /* from String to json object */
         JSONObject moviesJsons = new JSONObject(movieJsonString);
@@ -74,7 +73,8 @@ public final class MovieDBJsonUtils {
             movieData.put(MovieContract.MovieEntry.COLUMN_MOVIE_RELEASE_DATE, releaseDate);
             movieData.put(MovieContract.MovieEntry.COLUMN_MOVIE_POSTER, posterPath);
             movieData.put(MovieContract.MovieEntry.COLUMN_MOVIE_SORT, orderPref);
-            movieData.put(MovieContract.MovieEntry.COLUMN_MOVIE_FAVORITE, not_favorite);
+            movieData.put(MovieContract.MovieEntry.COLUMN_MOVIE_FAVORITE,
+                    context.getString(R.string.false_string));
 
             movieDataContentValues[i] = movieData;
         }
@@ -104,19 +104,19 @@ public final class MovieDBJsonUtils {
             site = movietrailerJson.getString(MDB_SITE);
 
             HashMap<String, String> trailerHashMapData = new HashMap<>();
-            trailerHashMapData.put("KEY", key);
-            trailerHashMapData.put("NAME", name);
-            trailerHashMapData.put("SITE", site);
+            trailerHashMapData.put(context.getString(R.string.key_string), key);
+            trailerHashMapData.put(context.getString(R.string.name_string), name);
+            trailerHashMapData.put(context.getString(R.string.site_string), site);
 
             movieTrailerDataArrayList.add(trailerHashMapData);
         }
         return movieTrailerDataArrayList;
     }
 
-    public static ArrayList<HashMap<String, String>> getReviewDataFromJson(Context context, String reviewJsonString)
+    public static ArrayList<HashMap<String, String>> getReviewDataFromJson(Context context,
+                                                                           String reviewJsonString)
             throws JSONException {
         final String MDB_RESULTS = "results";
-        final String MDB_AUTHOR = "author";
         final String MDB_CONTENT = "content";
 
         JSONObject reviewJSON = new JSONObject((reviewJsonString));
@@ -126,16 +126,13 @@ public final class MovieDBJsonUtils {
         ArrayList<HashMap<String, String>> reviewsDataArrayList = new ArrayList<>();
 
         for (int i = 0; i < reviewArray.length(); i++) {
-            String author;
             String content;
 
             JSONObject movieReviewJson = reviewArray.getJSONObject(i);
-            author = movieReviewJson.getString(MDB_AUTHOR);
             content = movieReviewJson.getString(MDB_CONTENT);
 
             HashMap<String, String> reviewHashmapValues = new HashMap<>();
-            reviewHashmapValues.put("AUTHOR", author);
-            reviewHashmapValues.put("CONTENT", content);
+            reviewHashmapValues.put(context.getString(R.string.content_string), content);
 
             reviewsDataArrayList.add(reviewHashmapValues);
         }

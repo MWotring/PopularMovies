@@ -30,7 +30,7 @@ public final class NetworkUtils {
     private static final String KEY_PARAM = "api_key";
     private static final String YOUTUBE_BASE_URL = "https://www.youtube.com/watch";
     private static final String YOUTUBE_VIDEO_QUERY = "v";
-    //private static final String MOVIE_VIDEO_URL = "videos";
+
 
     /**
      * Builds the URL used to talk to the movie api using a sort of popular or highest rated.
@@ -60,24 +60,6 @@ public final class NetworkUtils {
 
         Log.v(TAG, "Built URI " + builtUri);
         return builtUri;
-    }
-
-    public static URL buildMovieUrl(String movieApiId, String endpoint) {
-        URL url = null;
-
-        if (!endpoint.equals("favorite")) {
-            Uri builtUri = Uri.parse(MOVIE_IMAGE_BASE_URL).buildUpon()
-                    .appendEncodedPath(movieApiId)
-                    .appendEncodedPath(endpoint).build();
-
-            try {
-                url = new URL(builtUri.toString());
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            }
-            Log.v(TAG, "Built URI " + url);
-        }
-        return url;
     }
 
     public static URL buildPosterUrl(String posterPath){

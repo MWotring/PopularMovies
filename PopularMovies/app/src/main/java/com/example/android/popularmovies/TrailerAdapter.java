@@ -44,7 +44,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerV
     @Override
     public void onBindViewHolder(TrailerViewHolder viewHolder, int position) {
         HashMap<String, String> trailerDataMap = mTrailerData.get(position);
-        String name = trailerDataMap.get("NAME");
+        String name = trailerDataMap.get(mContext.getString(R.string.name_string));
         Log.d(TAG, "Trailer bind view holder got name " + name);
         viewHolder.mTrailerTitle.setText(name);
     }
@@ -67,11 +67,11 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerV
                 public void onClick(View view) {
                     int adapterPosition = getAdapterPosition();
                     HashMap<String, String> trailerData = mTrailerData.get(adapterPosition);
-                    String youtubeKey = trailerData.get("KEY");
-                    String site = trailerData.get("SITE");
+                    String youtubeKey = trailerData.get(mContext.getString(R.string.key_string));
+                    String site = trailerData.get(mContext.getString(R.string.site_string));
                     Log.d(TAG, "Reached onClick with site" + site);
 
-                    if (site.equals("YouTube")) {
+                    if (site.equals(mContext.getString(R.string.youtube_string))) {
                         Uri youtubeUri = NetworkUtils.buildYoutubeUrl(youtubeKey);
                         Intent intent = new Intent(Intent.ACTION_VIEW, youtubeUri);
                         if (intent.resolveActivity(mContext.getPackageManager()) != null) {

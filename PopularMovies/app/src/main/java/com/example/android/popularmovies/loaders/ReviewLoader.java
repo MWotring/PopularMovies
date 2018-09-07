@@ -5,6 +5,7 @@ import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
 
 import com.example.android.popularmovies.DetailActivity;
+import com.example.android.popularmovies.R;
 import com.example.android.popularmovies.utilities.MovieDBJsonUtils;
 import com.example.android.popularmovies.utilities.NetworkUtils;
 
@@ -16,10 +17,12 @@ public class ReviewLoader extends AsyncTaskLoader<ArrayList<HashMap<String, Stri
     private static final String TAG = DetailActivity.class.getSimpleName();
     private ArrayList<HashMap<String, String>> mReviewData;
     private String mApiId;
+    Context mContext;
 
     public ReviewLoader(Context context, String movieApiId) {
         super(context);
         this.mApiId = movieApiId;
+        mContext = context;
     }
 
     @Override
@@ -35,7 +38,8 @@ public class ReviewLoader extends AsyncTaskLoader<ArrayList<HashMap<String, Stri
         ArrayList<HashMap<String, String>> movieDataArrayList;
 
         try {
-            URL movieRequestUrl = NetworkUtils.buildDetailURL(mApiId, "reviews");
+            URL movieRequestUrl = NetworkUtils.buildDetailURL(mApiId,
+                    mContext.getString(R.string.reviews_key));
             Log.d(TAG, "Reviews url: " + movieRequestUrl);
             jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
             Log.d(TAG, "Reviews json resp: " + jsonMoviesResponse);

@@ -86,13 +86,12 @@ public class DetailActivity extends AppCompatActivity implements
         mFavoriteImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mFavorite.equals(mContext.getString(R.string.true_favorite_value))) {
-                    Log.d(TAG, "Favorite in onCLick " + mFavorite);
-                    setFavoriteValue(mContext.getString(R.string.false_favorite_value));
-                    set_fav_image();
+                if (mFavorite.equals(mContext.getString(R.string.true_string))) {
+                    setFavoriteValue(mContext.getString(R.string.false_string));
+                    set_favorite_image();
                 } else {
-                    setFavoriteValue(mContext.getString(R.string.true_favorite_value));
-                    set_fav_image();
+                    setFavoriteValue(mContext.getString(R.string.true_string));
+                    set_favorite_image();
                 }
             }
 
@@ -102,14 +101,15 @@ public class DetailActivity extends AppCompatActivity implements
         RecyclerView reviewsList = findViewById(R.id.rv_movie_reviews);
 
         Intent intentThatStartedDetails = getIntent();
-        mApiId = intentThatStartedDetails.getStringExtra("MovieApiId");
+        mApiId = intentThatStartedDetails.getStringExtra(
+                mContext.getString(R.string.intent_movie_api_id_string));
 
         if (mApiId == null) {
             throw new NullPointerException("Movie api id cannot be null");
         } else {
-            Log.d(TAG, "The movies id is " + mApiId);
+
             Bundle bundle = new Bundle();
-            bundle.putString("MovieApiId", mApiId);
+            bundle.putString(mContext.getString(R.string.intent_movie_api_id_string), mApiId);
             getSupportLoaderManager().initLoader(ID_DETAIL_LOADER, bundle, this);
             getSupportLoaderManager().initLoader(ID_TRAILER_LOADER, null, this);
             getSupportLoaderManager().initLoader(ID_REVIEW_LOADER, null, this);
@@ -122,8 +122,6 @@ public class DetailActivity extends AppCompatActivity implements
             trailersList.setAdapter(mTrailerAdapter);
             reviewsList.setAdapter(mReviewAdapter);
         }
-        //setFavoriteValue("true"); //only for creating some data to view initiallyset_fav_image();
-
     }
 
     private void setFavoriteValue(String valueToSet) {
@@ -141,8 +139,8 @@ public class DetailActivity extends AppCompatActivity implements
         Log.d(TAG, "Rows were updated " + updatedRows);
     }
 
-    private void set_fav_image() {
-        if (mFavorite.equals(mContext.getString(R.string.true_favorite_value))) {
+    private void set_favorite_image() {
+        if (mFavorite.equals(mContext.getString(R.string.true_string))) {
             mFavoriteImageView.setImageResource(R.drawable.ic_baseline_favorite_24px);
         } else {
             mFavoriteImageView.setImageResource(R.drawable.ic_baseline_favorite_border_24px);
@@ -155,7 +153,8 @@ public class DetailActivity extends AppCompatActivity implements
         switch (loaderId) {
 
             case ID_DETAIL_LOADER:
-                String apiId = bundle.getString("MovieApiId");
+                String apiId = bundle.getString(
+                        mContext.getString(R.string.intent_movie_api_id_string));
                 String selection = MovieContract.MovieEntry.COLUMN_MOVIE_API_ID + "=?";
                 String[] selectionArgs = new String[]{apiId};
 
@@ -176,7 +175,6 @@ public class DetailActivity extends AppCompatActivity implements
 
     }
 
-    @SuppressWarnings({"unchecked"})
     @Override
     public void onLoadFinished(Loader loader, Object data) {
         int id = loader.getId();
@@ -198,9 +196,11 @@ public class DetailActivity extends AppCompatActivity implements
             mFavorite = cursorData.getString(INDEX_MOVIE_FAVORITE);
 
             mTitleTextView.setText(mTitle);
-            mSynopsisTextView.setText("Synopsis: " + mSynopsis);
-            mUserRatingTextView.setText("Average viewer rating: " + mRating);
-            mReleaseDateTextView.setText("Film release date: " + mReleaseDate);
+            mSynopsisTextView.setText(mSynopsis);
+            mUserRatingTextView.setText(
+                    mContext.getString(R.string.rating_description) + mRating);
+            mReleaseDateTextView.setText(
+                    mContext.getString(R.string.release_date_description) + mReleaseDate);
 
             URL posterUrl = NetworkUtils.buildPosterUrl(mPosterPath);
 
@@ -214,7 +214,7 @@ public class DetailActivity extends AppCompatActivity implements
         } else if (id == ID_REVIEW_LOADER) {
             mReviewAdapter.setReviewData((ArrayList<HashMap<String, String>>) data);
         }
-        set_fav_image();
+        set_favorite_image();
     }
 
     @Override

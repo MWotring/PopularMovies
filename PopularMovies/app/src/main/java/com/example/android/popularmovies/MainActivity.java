@@ -84,36 +84,15 @@ public class MainActivity extends AppCompatActivity implements
         MovieSyncUtils.initialize(this);
     }
 
-    //May not need this method any longer
-    private void loadMovieData(String orderBy) {
-        showMovieGrid();
-        Context context = this;
-        boolean network = NetworkUtils.isNetworkConnectionPresent(context);
-        Log.d(TAG, "load movieData method, orderby " + orderBy);
-
-        if (orderBy.equals(getString(R.string.favorite_string))) {
-            new MovieAsyncTaskLoader(this).loadInBackground();
-            Log.d(TAG, "loadMovieData for favorites");
-        }
-        else if(network) {
-            Log.d(TAG, "NOT going to call api from loadMovieData");
-           // new MovieQueryAsyncTask(context).execute(orderBy);
-        } else {
-           // showErrorMsg();
-            new MovieAsyncTaskLoader(this).loadInBackground();
-            Log.v(TAG, "Network check has failed. Loading from DB");
-        }
+    private void showErrorMsg() {
+        mMoviesList.setVisibility(View.INVISIBLE);
+        mError.setVisibility(View.VISIBLE);
     }
 
-        private void showErrorMsg() {
-            mMoviesList.setVisibility(View.INVISIBLE);
-            mError.setVisibility(View.VISIBLE);
-        }
-
-        private void showMovieGrid() {
-            mMoviesList.setVisibility(View.VISIBLE);
-            mError.setVisibility(View.INVISIBLE);
-        }
+    private void showMovieGrid() {
+        mMoviesList.setVisibility(View.VISIBLE);
+        mError.setVisibility(View.INVISIBLE);
+    }
 
     private void setCorrectErrorMessage() {
         if (MoviePreferences.getPrefSortBy(this)
@@ -126,14 +105,14 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-        @Override
-        public void onClick(String movieApiId) {
+    @Override
+    public void onClick(String movieApiId) {
         Context context = this;
         Class destinationClass = DetailActivity.class;
         Intent intentToStartDetailActivity = new Intent(context, destinationClass);
         intentToStartDetailActivity
-                .putExtra("MovieApiId", movieApiId);
-        startActivity(intentToStartDetailActivity);
+                .putExtra(mContext.getString(R.string.intent_movie_api_id_string), movieApiId);
+            startActivity(intentToStartDetailActivity);
     }
 
     @Override
@@ -143,9 +122,9 @@ public class MainActivity extends AppCompatActivity implements
             case ID_MOVIE_LOADER:
                 Uri movieQueryUri = MovieContract.MovieEntry.CONTENT_URI;
                 String prefSortBy = MoviePreferences.getPrefSortBy(this);
-                if (prefSortBy.equals("favorite")) {
+                if (prefSortBy.equals(mContext.getString(R.string.favorite_string))) {
                     mSelection = MovieContract.MovieEntry.COLUMN_MOVIE_FAVORITE + "=?";
-                    mSelectionArgs = new String[]{"true"};
+                    mSelectionArgs = new String[]{mContext.getString(R.string.true_string)};
                 } else {
                     mSelection = MovieContract.MovieEntry.COLUMN_MOVIE_SORT + "=?";
                     mSelectionArgs = new String[]{prefSortBy};
@@ -241,47 +220,5 @@ public class MainActivity extends AppCompatActivity implements
         PreferenceManager.getDefaultSharedPreferences(this)
                 .unregisterOnSharedPreferenceChangeListener(this);
     }
-
-    private static class MovieAsyncTaskLoader extends AsyncTaskLoader<Cursor>  {
-
-        Cursor mMovieData;
-
-        public MovieAsyncTaskLoader(Context context) {
-            super(context);
-        }
-
-        @Override
-        protected void onStartLoading() {
-        Log.d(TAG, "AsyncTaskLoader onStartLoading");
-            if (mMovieData != null) {
-                deliverResult(mMovieData);
-            } else {
-                forceLoad();
-            }
-        }
-
-        @Override
-        public Cursor loadInBackground() {
-            ContentResolver resolver = getContext().getContentResolver();
-            Log.d(TAG, "loadInBack in AsyncTaskLoader " );
-
-                try {
-                    Cursor cursor = resolver.query(MovieContract.MovieEntry.CONTENT_URI,
-                            MAIN_MOVIE_PROJECTION, null, null, null,null);
-                    return cursor;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
-        }
-
-        @Override
-        public void deliverResult(Cursor cursor) {
-            mMovieData = cursor;
-            super.deliverResult(cursor);
-        }
-
-    }
-
 }
 
