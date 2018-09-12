@@ -1,5 +1,6 @@
 package com.example.android.popularmovies;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -7,7 +8,9 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.CursorLoader;
@@ -15,6 +18,7 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerView.SavedState;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -33,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String BUNDLE_RECYCLER_LAYOUT = "main_activity.recycler.layout";
 
     public static final String[] MAIN_MOVIE_PROJECTION = {
             MovieContract.MovieEntry.COLUMN_MOVIE_API_ID,
@@ -53,6 +58,8 @@ public class MainActivity extends AppCompatActivity implements
     private int mPosition = RecyclerView.NO_POSITION;
     private String mSelection;
     private String[] mSelectionArgs;
+    private int mScrollPosition;
+    private Parcelable mSavedRecyclerLayoutState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,6 +159,7 @@ public class MainActivity extends AppCompatActivity implements
         mMoviesList.smoothScrollToPosition(mPosition);
         if (mMovieDataCursor.getCount() != 0) {
             showMovieGrid();
+            mMoviesList.getLayoutManager().onRestoreInstanceState(mSavedRecyclerLayoutState);
             Log.d(TAG, "Grid should display now with count" + mMovieDataCursor.getCount());
         } else {
             Log.d(TAG, "Error should display");
@@ -219,6 +227,24 @@ public class MainActivity extends AppCompatActivity implements
         super.onDestroy();
         PreferenceManager.getDefaultSharedPreferences(this)
                 .unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(BUNDLE_RECYCLER_LAYOUT,
+                mMoviesList.getLayoutManager().onSaveInstanceState());
+    }
+
+    @Override
+    public void onRestoreInstanceState(@Nullable Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        if(savedInstanceState != null)
+        {
+            Parcelable mSavedRecyclerLayoutState = savedInstanceState.getParcelable(BUNDLE_RECYCLER_LAYOUT);
+            mMoviesList.getLayoutManager().onRestoreInstanceState(mSavedRecyclerLayoutState);
+        }
     }
 }
 
