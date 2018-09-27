@@ -1,7 +1,5 @@
 package com.example.android.popularmovies;
 
-import android.annotation.SuppressLint;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,13 +10,11 @@ import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.SavedState;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,7 +25,6 @@ import android.widget.TextView;
 import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.data.MoviePreferences;
 import com.example.android.popularmovies.sync.MovieSyncUtils;
-import com.example.android.popularmovies.utilities.NetworkUtils;
 
 public class MainActivity extends AppCompatActivity implements
         MovieAdapter.MovieAdapterOnClickHandler,
@@ -58,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements
     private int mPosition = RecyclerView.NO_POSITION;
     private String mSelection;
     private String[] mSelectionArgs;
-    private int mScrollPosition;
     private Parcelable mSavedRecyclerLayoutState;
 
     @Override
@@ -76,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements
 
         mMovieAdapter = new MovieAdapter(this, this);
         mMoviesList.setAdapter(mMovieAdapter);
+        restorePosition();
 
         int loaderId = ID_MOVIE_LOADER;
 
@@ -159,8 +154,8 @@ public class MainActivity extends AppCompatActivity implements
         mMoviesList.smoothScrollToPosition(mPosition);
         if (mMovieDataCursor.getCount() != 0) {
             showMovieGrid();
-            mMoviesList.getLayoutManager().onRestoreInstanceState(mSavedRecyclerLayoutState);
-            Log.d(TAG, "Grid should display now with count" + mMovieDataCursor.getCount());
+            restorePosition();
+            Log.d(TAG, "Grid should display now ");
         } else {
             Log.d(TAG, "Error should display");
             setCorrectErrorMessage();
@@ -231,19 +226,33 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelable(BUNDLE_RECYCLER_LAYOUT,
+        Bundle bundle = new Bundle();
+
+        Log.d(TAG, "onSaveInstanceState: ");
+        bundle.putParcelable(BUNDLE_RECYCLER_LAYOUT,
                 mMoviesList.getLayoutManager().onSaveInstanceState());
+
+        super.onSaveInstanceState(outState);
     }
 
     @Override
     public void onRestoreInstanceState(@Nullable Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 
-        if(savedInstanceState != null)
-        {
-            Parcelable mSavedRecyclerLayoutState = savedInstanceState.getParcelable(BUNDLE_RECYCLER_LAYOUT);
+        if ((savedInstanceState instanceof Bundle) && (savedInstanceState != null)) {
+            Log.d(TAG, "onRestoreInstanceState: nonNUll savedInstanceState");
+            mSavedRecyclerLayoutState = savedInstanceState.getParcelable(BUNDLE_RECYCLER_LAYOUT);
             mMoviesList.getLayoutManager().onRestoreInstanceState(mSavedRecyclerLayoutState);
+        }
+        super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    private void restorePosition() {
+        Log.d(TAG, "restorePosition: ");
+        if (mSavedRecyclerLayoutState != null) {
+            Log.d(TAG, "restorePosition: saved state not null");
+            mMoviesList.getLayoutManager().onRestoreInstanceState(mSavedRecyclerLayoutState);
+            mSavedRecyclerLayoutState = null;
         }
     }
 }
