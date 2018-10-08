@@ -14,6 +14,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
@@ -32,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final String BUNDLE_RECYCLER_LAYOUT = "main_activity.recycler.layout";
+    private static final String SCROLL_OFFSET = "SCROLL_OFFSET";
 
     public static final String[] MAIN_MOVIE_PROJECTION = {
             MovieContract.MovieEntry.COLUMN_MOVIE_API_ID,
@@ -53,13 +54,16 @@ public class MainActivity extends AppCompatActivity implements
     private int mPosition = RecyclerView.NO_POSITION;
     private String mSelection;
     private String[] mSelectionArgs;
-    private Parcelable mSavedRecyclerLayoutState;
+    private int mOffset;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
         setContentView(R.layout.movie_grid);
+        if (savedInstanceState != null) {
+            mOffset = savedInstanceState.getInt(SCROLL_OFFSET);
+        }
 
         mError = findViewById(R.id.network_error_message);
 
@@ -70,7 +74,6 @@ public class MainActivity extends AppCompatActivity implements
 
         mMovieAdapter = new MovieAdapter(this, this);
         mMoviesList.setAdapter(mMovieAdapter);
-        restorePosition();
 
         int loaderId = ID_MOVIE_LOADER;
 
@@ -84,6 +87,8 @@ public class MainActivity extends AppCompatActivity implements
                 .registerOnSharedPreferenceChangeListener(this);
 
         MovieSyncUtils.initialize(this);
+       // mMoviesList.getLayoutManager().scrollToPosition(mPosition);
+        mMoviesList.smoothScrollToPosition(2);
     }
 
     private void showErrorMsg() {
@@ -115,6 +120,13 @@ public class MainActivity extends AppCompatActivity implements
         intentToStartDetailActivity
                 .putExtra(mContext.getString(R.string.intent_movie_api_id_string), movieApiId);
             startActivity(intentToStartDetailActivity);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "ONRESUME");
+        mMoviesList.smoothScrollToPosition(2);
     }
 
     @Override
@@ -154,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements
         mMoviesList.smoothScrollToPosition(mPosition);
         if (mMovieDataCursor.getCount() != 0) {
             showMovieGrid();
-            restorePosition();
+            mMoviesList.smoothScrollToPosition(2);
             Log.d(TAG, "Grid should display now ");
         } else {
             Log.d(TAG, "Error should display");
@@ -226,34 +238,27 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        Bundle bundle = new Bundle();
-
-        Log.d(TAG, "onSaveInstanceState: ");
-        bundle.putParcelable(BUNDLE_RECYCLER_LAYOUT,
-                mMoviesList.getLayoutManager().onSaveInstanceState());
-
         super.onSaveInstanceState(outState);
+
+        //Log.d(TAG, "onSaveInstanceState: offset " + mMoviesList.computeVerticalScrollOffset());
+       // mPosition = (LinearLayoutManager) mMoviesList.getLayoutManager().getPosition();
+        Log.d(TAG, "onSaveInstanceState: offset " +  mMoviesList.computeVerticalScrollOffset());
+        outState.putInt(SCROLL_OFFSET, mMoviesList.computeVerticalScrollOffset());
+        Log.d(TAG, "position " + mPosition);
+
+
     }
 
     @Override
     public void onRestoreInstanceState(@Nullable Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 
-        if ((savedInstanceState instanceof Bundle) && (savedInstanceState != null)) {
-            Log.d(TAG, "onRestoreInstanceState: nonNUll savedInstanceState");
-            mSavedRecyclerLayoutState = savedInstanceState.getParcelable(BUNDLE_RECYCLER_LAYOUT);
-            mMoviesList.getLayoutManager().onRestoreInstanceState(mSavedRecyclerLayoutState);
+        if (savedInstanceState != null) {
+            mOffset = savedInstanceState.getInt(SCROLL_OFFSET);
+            Log.d(TAG, "onRestoreInstanceState: nonNUll savedInstanceState: " + mOffset);
+            mMoviesList.smoothScrollToPosition(2);
         }
         super.onRestoreInstanceState(savedInstanceState);
-    }
-
-    private void restorePosition() {
-        Log.d(TAG, "restorePosition: ");
-        if (mSavedRecyclerLayoutState != null) {
-            Log.d(TAG, "restorePosition: saved state not null");
-            mMoviesList.getLayoutManager().onRestoreInstanceState(mSavedRecyclerLayoutState);
-            mSavedRecyclerLayoutState = null;
-        }
     }
 }
 
