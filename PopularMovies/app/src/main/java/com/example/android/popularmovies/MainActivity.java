@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity implements
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String SCROLL_OFFSET = "SCROLL_OFFSET";
+    private static final String SCROLL_POSITION = "SCROLL_POSITION";
+    private static final String LAYOUT_MANAGER_STATE = "LAYOUT_MANAGER_STATE";
 
     public static final String[] MAIN_MOVIE_PROJECTION = {
             MovieContract.MovieEntry.COLUMN_MOVIE_API_ID,
@@ -54,16 +56,16 @@ public class MainActivity extends AppCompatActivity implements
     private int mPosition = RecyclerView.NO_POSITION;
     private String mSelection;
     private String[] mSelectionArgs;
-    private int mOffset;
+    private int mStatePos;
+    private float mOffset;
+    private Parcelable mSavedRecyclerLayoutState;
+    private LinearLayoutManager mManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
         setContentView(R.layout.movie_grid);
-        if (savedInstanceState != null) {
-            mOffset = savedInstanceState.getInt(SCROLL_OFFSET);
-        }
 
         mError = findViewById(R.id.network_error_message);
 
@@ -87,8 +89,15 @@ public class MainActivity extends AppCompatActivity implements
                 .registerOnSharedPreferenceChangeListener(this);
 
         MovieSyncUtils.initialize(this);
-       // mMoviesList.getLayoutManager().scrollToPosition(mPosition);
-        mMoviesList.smoothScrollToPosition(2);
+        mManager = (LinearLayoutManager) mMoviesList.getLayoutManager();
+
+        if (savedInstanceState != null) {
+            Log.d(TAG, "OnCreate about to restore state");
+
+            Parcelable savedRecyclerLayoutState = savedInstanceState.getParcelable(LAYOUT_MANAGER_STATE);
+            mManager.onRestoreInstanceState(savedRecyclerLayoutState);
+        }
+
     }
 
     private void showErrorMsg() {
@@ -119,14 +128,16 @@ public class MainActivity extends AppCompatActivity implements
         Intent intentToStartDetailActivity = new Intent(context, destinationClass);
         intentToStartDetailActivity
                 .putExtra(mContext.getString(R.string.intent_movie_api_id_string), movieApiId);
-            startActivity(intentToStartDetailActivity);
+        startActivity(intentToStartDetailActivity);
     }
 
     @Override
     public void onResume() {
         super.onResume();
         Log.d(TAG, "ONRESUME");
-        mMoviesList.smoothScrollToPosition(2);
+
+        mManager.scrollToPositionWithOffset(mStatePos, (int) mOffset);
+        // manager.scrollToPosition(mStatePos);
     }
 
     @Override
@@ -149,9 +160,9 @@ public class MainActivity extends AppCompatActivity implements
                         mSelection,
                         mSelectionArgs,
                         null
-                        );
-                default:
-                    throw new RuntimeException("Loader not implemented: " + id);
+                );
+            default:
+                throw new RuntimeException("Loader not implemented: " + id);
         }
     }
 
@@ -166,7 +177,9 @@ public class MainActivity extends AppCompatActivity implements
         mMoviesList.smoothScrollToPosition(mPosition);
         if (mMovieDataCursor.getCount() != 0) {
             showMovieGrid();
-            mMoviesList.smoothScrollToPosition(2);
+            Log.d(TAG, "OnLoadFinished");
+
+            mManager.onRestoreInstanceState(mSavedRecyclerLayoutState);
             Log.d(TAG, "Grid should display now ");
         } else {
             Log.d(TAG, "Error should display");
@@ -240,11 +253,18 @@ public class MainActivity extends AppCompatActivity implements
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        //Log.d(TAG, "onSaveInstanceState: offset " + mMoviesList.computeVerticalScrollOffset());
-       // mPosition = (LinearLayoutManager) mMoviesList.getLayoutManager().getPosition();
-        Log.d(TAG, "onSaveInstanceState: offset " +  mMoviesList.computeVerticalScrollOffset());
-        outState.putInt(SCROLL_OFFSET, mMoviesList.computeVerticalScrollOffset());
-        Log.d(TAG, "position " + mPosition);
+
+        int firstItem = mManager.findFirstVisibleItemPosition();
+        View firstItemView = mManager.findViewByPosition(firstItem);
+        float topOffset = firstItemView.getTop();
+
+        outState.putParcelable(LAYOUT_MANAGER_STATE, mManager.onSaveInstanceState());
+        //outState.putInt(SCROLL_POSITION, firstItem);
+        //outState.putFloat(SCROLL_OFFSET, topOffset);
+        //Log.d(TAG, "onSaveInstanceState: topOffset " + topOffset);
+
+        // Log.d(TAG, "position " + firstItem);
+        Log.d(TAG, "onSavedInstanceState");
 
 
     }
@@ -254,9 +274,24 @@ public class MainActivity extends AppCompatActivity implements
         super.onRestoreInstanceState(savedInstanceState);
 
         if (savedInstanceState != null) {
-            mOffset = savedInstanceState.getInt(SCROLL_OFFSET);
-            Log.d(TAG, "onRestoreInstanceState: nonNUll savedInstanceState: " + mOffset);
-            mMoviesList.smoothScrollToPosition(2);
+
+            Parcelable state = savedInstanceState.getParcelable(LAYOUT_MANAGER_STATE);
+            mManager.onRestoreInstanceState(state);
+            mSavedRecyclerLayoutState = state;
+
+            for (String key: savedInstanceState.keySet()) {
+                Log.d(TAG, "Keys are :" + key + " " + savedInstanceState.get(key));
+            }
+            //mStatePos = savedInstanceState.getInt(SCROLL_POSITION);
+            // mOffset = savedInstanceState.getFloat(SCROLL_OFFSET);
+
+            //Log.d(TAG, "onRestoreInstanceState: nonNUll savedInstanceState: " + mOffset);
+            //Log.d(TAG, "position i s " + mStatePos);
+            Log.d(TAG, "onRestoreInstanceState");
+
+            //LinearLayoutManager manager = (GridLayoutManager) mMoviesList.getLayoutManager();
+            // manager.scrollToPositionWithOffset(mStatePos, (int) mOffset);
+            //manager.scrollToPosition(mStatePos);
         }
         super.onRestoreInstanceState(savedInstanceState);
     }
